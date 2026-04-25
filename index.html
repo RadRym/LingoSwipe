@@ -4,338 +4,155 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>LingoSwipe</title>
-
-  <!-- PWA -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0c1a14">
   <meta name="mobile-web-app-capable" content="yes">
-
-  <!-- iOS -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="LingoSwipe">
   <link rel="apple-touch-icon" href="icon.svg">
-
   <style>
     * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
       --safe-top:    env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
-      --safe-left:   env(safe-area-inset-left,  0px);
-      --safe-right:  env(safe-area-inset-right,  0px);
     }
-
-    html, body {
-      width: 100%; height: 100%;
-      overflow: hidden;
-      background: #0c1a14;
+    html, body { width:100%; height:100%; overflow:hidden; background:#0c1a14;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      user-select: none;
-      -webkit-user-select: none;
-    }
+      user-select:none; -webkit-user-select:none; }
 
-    /* ── Thin progress bar at very top ─────────────────────────── */
-    #progress-bar {
-      position: fixed;
-      top: var(--safe-top);
-      left: 0; right: 0;
-      height: 3px;
-      background: rgba(255,255,255,0.12);
-      z-index: 70;
-    }
-    #progress-fill {
-      height: 100%;
-      background: #2dd4a4;
-      border-radius: 0 2px 2px 0;
-      transition: width 0.4s ease;
-      width: 0%;
-    }
+    /* ── Progress bar ── */
+    #progress-bar { position:fixed; top:var(--safe-top); left:0; right:0; height:3px;
+      background:rgba(255,255,255,0.1); z-index:70; }
+    #progress-fill { height:100%; background:#2dd4a4; border-radius:0 2px 2px 0;
+      transition:width 0.4s ease; width:0%; }
 
-    /* ── Floating top bar ───────────────────────────────────────── */
-    #topbar {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 60;
-      padding: calc(var(--safe-top) + 14px) 18px 32px;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.65) 0%, transparent 100%);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      pointer-events: none;
-    }
-    #topbar > * { pointer-events: auto; }
+    /* ── Top bar ── */
+    #topbar { position:fixed; top:0; left:0; right:0; z-index:60;
+      padding:calc(var(--safe-top) + 14px) 18px 36px;
+      background:linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 100%);
+      display:flex; align-items:center; justify-content:space-between; pointer-events:none; }
+    #topbar > * { pointer-events:auto; }
+    .topbar-logo { display:flex; align-items:center; gap:7px;
+      color:#fff; font-weight:800; font-size:18px; letter-spacing:-0.3px; }
+    .topbar-logo span:first-child { font-size:22px; }
+    .topbar-right { display:flex; align-items:center; gap:10px; }
+    .streak-pill { display:flex; align-items:center; gap:5px;
+      background:rgba(255,255,255,0.15); backdrop-filter:blur(10px);
+      border:1px solid rgba(255,255,255,0.2); border-radius:999px;
+      padding:5px 11px; color:#fff; font-size:13px; font-weight:700; }
+    .icon-btn { width:40px; height:40px; border-radius:999px;
+      background:rgba(255,255,255,0.15); backdrop-filter:blur(10px);
+      border:1px solid rgba(255,255,255,0.2);
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; color:#fff; transition:background 0.15s, transform 0.1s; }
+    .icon-btn:active { transform:scale(0.88); background:rgba(255,255,255,0.28); }
 
-    .topbar-logo {
-      display: flex; align-items: center; gap: 7px;
-      color: #fff; font-weight: 800; font-size: 18px; letter-spacing: -0.3px;
-    }
-    .topbar-logo span:first-child { font-size: 22px; }
+    /* ── Counter ── */
+    #counter { position:fixed; top:calc(var(--safe-top) + 62px); left:50%;
+      transform:translateX(-50%); z-index:59;
+      color:rgba(255,255,255,0.45); font-size:12px; font-weight:600;
+      letter-spacing:0.5px; pointer-events:none; }
 
-    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    /* ── Card stack (full screen) ── */
+    #card-stack { position:fixed; inset:0; z-index:10; }
+    .card-wrapper { position:absolute; inset:0; will-change:transform;
+      transition:transform 0.38s cubic-bezier(0.34,1.56,0.64,1), filter 0.38s ease; }
+    .card-wrapper[data-stack="0"] { z-index:10; }
+    .card-wrapper[data-stack="1"] { transform:scale(0.93) translateY(14px); filter:brightness(0.75); z-index:9; }
+    .card-wrapper[data-stack="2"] { transform:scale(0.86) translateY(28px); filter:brightness(0.55); z-index:8; }
 
-    .streak-pill {
-      display: flex; align-items: center; gap: 5px;
-      background: rgba(255,255,255,0.15);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 999px;
-      padding: 5px 11px;
-      color: #fff; font-size: 13px; font-weight: 700;
-    }
+    /* ── Flip ── */
+    .card-scene { width:100%; height:100%; perspective:1600px; }
+    .card-inner { position:relative; width:100%; height:100%;
+      transform-style:preserve-3d;
+      transition:transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      cursor:pointer; will-change:transform; }
+    .card-face { position:absolute; inset:0;
+      backface-visibility:hidden; -webkit-backface-visibility:hidden; overflow:hidden; }
+    .card-back { transform:rotateY(180deg); }
 
-    .icon-btn {
-      width: 40px; height: 40px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.15);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.2);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; color: #fff;
-      transition: background 0.15s, transform 0.1s;
-    }
-    .icon-btn:active { transform: scale(0.88); background: rgba(255,255,255,0.28); }
+    /* ── Stamps ── */
+    .stamp { position:absolute; top:calc(var(--safe-top) + 90px);
+      padding:7px 18px; border-radius:10px; font-size:22px; font-weight:900;
+      letter-spacing:2px; opacity:0; pointer-events:none; z-index:30; transition:opacity 0.08s; }
+    .stamp-yes { left:24px;  border:4px solid #22c55e; color:#22c55e; transform:rotate(-12deg); }
+    .stamp-no  { right:24px; border:4px solid #ef4444; color:#ef4444; transform:rotate(12deg); }
 
-    /* ── Counter badge ──────────────────────────────────────────── */
-    #counter {
-      position: fixed;
-      top: calc(var(--safe-top) + 60px);
-      left: 50%; transform: translateX(-50%);
-      z-index: 59;
-      color: rgba(255,255,255,0.5);
-      font-size: 12px; font-weight: 600;
-      letter-spacing: 0.5px;
-      pointer-events: none;
-    }
+    /* ── Action buttons ── */
+    #actions { position:fixed; bottom:0; left:0; right:0; z-index:60;
+      display:flex; align-items:center; gap:10px;
+      padding:20px 20px calc(var(--safe-bottom) + 24px);
+      background:linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 100%);
+      pointer-events:none; }
+    #actions > * { pointer-events:auto; }
+    .act-btn { display:flex; align-items:center; justify-content:center; gap:7px;
+      cursor:pointer; transition:transform 0.12s, opacity 0.12s; border:none; }
+    .act-btn:active { transform:scale(0.93); opacity:0.85; }
+    .act-btn-skip { flex:1; height:56px; border-radius:18px;
+      background:rgba(239,68,68,0.13); border:1.5px solid rgba(239,68,68,0.35);
+      color:#f87171; font-size:15px; font-weight:700; }
+    .act-btn-flip { width:52px; height:52px; border-radius:15px; flex-shrink:0;
+      background:rgba(255,255,255,0.1); border:1.5px solid rgba(255,255,255,0.18);
+      color:rgba(255,255,255,0.65); font-size:20px; }
+    .act-btn-got  { flex:1; height:56px; border-radius:18px;
+      background:#2dd4a4; color:#072018; font-size:15px; font-weight:700;
+      box-shadow:0 4px 20px rgba(45,212,164,0.3); }
 
-    /* ── Card stack: full screen ────────────────────────────────── */
-    #card-stack {
-      position: fixed;
-      inset: 0;
-      z-index: 10;
-    }
+    /* ── Drawer overlay ── */
+    #drawer-overlay { position:fixed; inset:0; z-index:80;
+      background:rgba(0,0,0,0); pointer-events:none; transition:background 0.3s; }
+    #drawer-overlay.open { background:rgba(0,0,0,0.5); pointer-events:auto; }
 
-    .card-wrapper {
-      position: absolute;
-      inset: 0;
-      will-change: transform;
-      transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1),
-                  filter  0.38s ease;
-    }
-    .card-wrapper[data-stack="1"] {
-      transform: scale(0.93) translateY(14px);
-      filter: brightness(0.75);
-      z-index: 9;
-    }
-    .card-wrapper[data-stack="2"] {
-      transform: scale(0.86) translateY(28px);
-      filter: brightness(0.55);
-      z-index: 8;
-    }
-    .card-wrapper[data-stack="0"] { z-index: 10; }
+    /* ── Drawer ── */
+    #drawer { position:fixed; top:0; right:0; bottom:0; width:min(300px,85vw); z-index:90;
+      background:#0f2b22; border-left:1px solid rgba(255,255,255,0.08);
+      transform:translateX(100%); transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);
+      display:flex; flex-direction:column;
+      padding:calc(var(--safe-top) + 16px) 0 calc(var(--safe-bottom) + 16px);
+      overflow-y:auto; }
+    #drawer.open { transform:translateX(0); }
+    .drawer-header { display:flex; align-items:center; justify-content:space-between;
+      padding:6px 20px 20px; border-bottom:1px solid rgba(255,255,255,0.08); margin-bottom:8px; }
+    .drawer-title { color:#fff; font-size:17px; font-weight:700; }
+    .drawer-close { width:32px; height:32px; border-radius:999px;
+      background:rgba(255,255,255,0.1); border:none; color:#fff; font-size:16px;
+      display:flex; align-items:center; justify-content:center; cursor:pointer; }
+    .drawer-section { padding:14px 20px; border-bottom:1px solid rgba(255,255,255,0.06); }
+    .drawer-label { color:rgba(255,255,255,0.4); font-size:11px; font-weight:700;
+      text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; }
+    .filter-grid { display:flex; gap:8px; flex-wrap:wrap; }
+    .filter-btn { padding:7px 14px; border-radius:999px; font-size:13px; font-weight:700;
+      border:2px solid rgba(255,255,255,0.15); background:transparent;
+      color:rgba(255,255,255,0.5); cursor:pointer; transition:all 0.15s; }
+    .filter-btn.active { background:#2dd4a4; border-color:#2dd4a4; color:#0a2018; }
+    .filter-btn:active  { opacity:0.75; }
+    .stat-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; }
+    .stat-label { color:rgba(255,255,255,0.5); font-size:14px; }
+    .stat-value { color:#fff; font-size:14px; font-weight:700; }
+    .drawer-btn { margin:14px 20px 0; padding:13px; border-radius:14px; border:none;
+      font-size:14px; font-weight:700; cursor:pointer; transition:opacity 0.15s; }
+    .drawer-btn:active { opacity:0.7; }
+    .drawer-btn-reset { background:rgba(239,68,68,0.15); color:#f87171; }
+    .drawer-shortcuts { padding:16px 20px; color:rgba(255,255,255,0.3);
+      font-size:12px; line-height:1.8; margin-top:auto; }
 
-    /* ── Flip ───────────────────────────────────────────────────── */
-    .card-scene {
-      width: 100%; height: 100%;
-      perspective: 1600px;
-    }
-    .card-inner {
-      position: relative;
-      width: 100%; height: 100%;
-      transform-style: preserve-3d;
-      transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      cursor: pointer;
-      will-change: transform;
-    }
-    .card-face {
-      position: absolute;
-      inset: 0;
-      backface-visibility: hidden;
-      -webkit-backface-visibility: hidden;
-      overflow: hidden;
-    }
-    .card-back { transform: rotateY(180deg); }
-
-    /* ── Swipe stamps ───────────────────────────────────────────── */
-    .stamp {
-      position: absolute;
-      top: calc(var(--safe-top) + 90px);
-      padding: 7px 18px;
-      border-radius: 10px;
-      font-size: 22px; font-weight: 900; letter-spacing: 2px;
-      opacity: 0; pointer-events: none; z-index: 30;
-      transition: opacity 0.08s;
-    }
-    .stamp-yes { left: 24px;  border: 4px solid #22c55e; color: #22c55e; transform: rotate(-12deg); }
-    .stamp-no  { right: 24px; border: 4px solid #ef4444; color: #ef4444; transform: rotate(12deg); }
-
-    /* ── Floating action buttons ────────────────────────────────── */
-    #actions {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      z-index: 60;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      padding: 24px 24px calc(var(--safe-bottom) + 28px);
-      background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%);
-      pointer-events: none;
-    }
-    #actions > * { pointer-events: auto; }
-
-    .act-btn {
-      display: flex; align-items: center; justify-content: center;
-      border-radius: 999px;
-      cursor: pointer;
-      transition: transform 0.12s, box-shadow 0.12s;
-      border: none;
-    }
-    .act-btn:active { transform: scale(0.88); }
-
-    .act-btn-skip {
-      width: 64px; height: 64px; font-size: 28px;
-      background: #fff;
-      color: #ef4444;
-      box-shadow: 0 6px 24px rgba(239,68,68,0.35);
-    }
-    .act-btn-flip {
-      width: 52px; height: 52px; font-size: 20px;
-      background: rgba(255,255,255,0.18);
-      backdrop-filter: blur(12px);
-      border: 2px solid rgba(255,255,255,0.3) !important;
-      color: #fff;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-    }
-    .act-btn-got {
-      width: 64px; height: 64px; font-size: 28px;
-      background: #fff;
-      color: #22c55e;
-      box-shadow: 0 6px 24px rgba(34,197,94,0.35);
-    }
-
-    /* ── Drawer overlay ─────────────────────────────────────────── */
-    #drawer-overlay {
-      position: fixed; inset: 0; z-index: 80;
-      background: rgba(0,0,0,0);
-      pointer-events: none;
-      transition: background 0.3s;
-    }
-    #drawer-overlay.open {
-      background: rgba(0,0,0,0.5);
-      pointer-events: auto;
-    }
-
-    /* ── Drawer panel ───────────────────────────────────────────── */
-    #drawer {
-      position: fixed;
-      top: 0; right: 0; bottom: 0;
-      width: min(300px, 85vw);
-      z-index: 90;
-      background: #0f2b22;
-      border-left: 1px solid rgba(255,255,255,0.08);
-      transform: translateX(100%);
-      transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
-      display: flex; flex-direction: column;
-      padding: calc(var(--safe-top) + 16px) 0 calc(var(--safe-bottom) + 16px);
-      overflow-y: auto;
-    }
-    #drawer.open { transform: translateX(0); }
-
-    .drawer-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 6px 20px 20px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      margin-bottom: 8px;
-    }
-    .drawer-title { color: #fff; font-size: 17px; font-weight: 700; }
-    .drawer-close {
-      width: 32px; height: 32px; border-radius: 999px;
-      background: rgba(255,255,255,0.1);
-      border: none; color: #fff; font-size: 16px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-    }
-
-    .drawer-section { padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
-    .drawer-label {
-      color: rgba(255,255,255,0.4);
-      font-size: 11px; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 1px;
-      margin-bottom: 12px;
-    }
-
-    .filter-grid { display: flex; gap: 8px; flex-wrap: wrap; }
-    .filter-btn {
-      padding: 7px 16px; border-radius: 999px; font-size: 13px; font-weight: 700;
-      border: 2px solid rgba(255,255,255,0.15);
-      background: transparent; color: rgba(255,255,255,0.5);
-      cursor: pointer; transition: all 0.15s;
-    }
-    .filter-btn.active, .filter-btn:active {
-      background: #2dd4a4; border-color: #2dd4a4; color: #0a2018;
-    }
-
-    .stat-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 6px 0;
-    }
-    .stat-label { color: rgba(255,255,255,0.5); font-size: 14px; }
-    .stat-value { color: #fff; font-size: 14px; font-weight: 700; }
-
-    .drawer-btn {
-      margin: 16px 20px 0;
-      padding: 13px;
-      border-radius: 14px;
-      border: none;
-      font-size: 14px; font-weight: 700;
-      cursor: pointer;
-      transition: opacity 0.15s;
-    }
-    .drawer-btn:active { opacity: 0.7; }
-    .drawer-btn-reset { background: rgba(239,68,68,0.15); color: #f87171; }
-
-    .drawer-shortcuts {
-      padding: 16px 20px;
-      color: rgba(255,255,255,0.3);
-      font-size: 12px;
-      line-height: 1.8;
-      margin-top: auto;
-    }
-
-    /* ── Completion ─────────────────────────────────────────────── */
-    #completion {
-      position: fixed; inset: 0; z-index: 100;
-      background: linear-gradient(160deg, #0c1a14 0%, #0d2b2b 100%);
-      display: none; flex-direction: column;
-      align-items: center; justify-content: center;
-      padding: 2rem;
-    }
-    #completion.visible {
-      display: flex;
-      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    @keyframes popIn {
-      from { opacity: 0; transform: scale(0.85); }
-      to   { opacity: 1; transform: scale(1); }
-    }
+    /* ── Completion ── */
+    #completion { position:fixed; inset:0; z-index:100;
+      background:linear-gradient(160deg,#0c1a14 0%,#0d2b2b 100%);
+      display:none; flex-direction:column; align-items:center; justify-content:center; padding:2rem; }
+    #completion.visible { display:flex; animation:popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275); }
+    @keyframes popIn { from{opacity:0;transform:scale(0.85)} to{opacity:1;transform:scale(1)} }
   </style>
 </head>
 <body>
 
-  <!-- Progress bar -->
   <div id="progress-bar"><div id="progress-fill"></div></div>
 
-  <!-- Floating top bar -->
   <header id="topbar">
-    <div class="topbar-logo">
-      <span>🌍</span>
-      <span>LingoSwipe</span>
-    </div>
+    <div class="topbar-logo"><span>🌍</span><span>LingoSwipe</span></div>
     <div class="topbar-right">
-      <div class="streak-pill">
-        <span>🔥</span><span id="streak">0</span>
-      </div>
+      <div class="streak-pill"><span>🔥</span><span id="streak">0</span></div>
       <button class="icon-btn" id="btn-menu" aria-label="Menu">
         <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
           <rect width="18" height="2" rx="1" fill="white"/>
@@ -346,23 +163,16 @@
     </div>
   </header>
 
-  <!-- Card counter -->
-  <div id="counter">1 / 22</div>
-
-  <!-- Card stack -->
+  <div id="counter">1 / 52</div>
   <div id="card-stack"></div>
 
-  <!-- Floating action buttons -->
   <div id="actions">
-    <button class="act-btn act-btn-skip" id="btn-nope" title="Skip (←)">✗</button>
-    <button class="act-btn act-btn-flip" id="btn-flip" title="Flip (Space)">👁️</button>
-    <button class="act-btn act-btn-got"  id="btn-got"  title="Got it (→)">✓</button>
+    <button class="act-btn act-btn-skip" id="btn-nope">✗ Not yet</button>
+    <button class="act-btn act-btn-flip" id="btn-flip">👁️</button>
+    <button class="act-btn act-btn-got"  id="btn-got">Got it! ✓</button>
   </div>
 
-  <!-- Drawer overlay -->
-  <div id="drawer-overlay" id="drawer-overlay"></div>
-
-  <!-- Drawer -->
+  <div id="drawer-overlay"></div>
   <nav id="drawer">
     <div class="drawer-header">
       <span class="drawer-title">Options</span>
@@ -370,12 +180,20 @@
     </div>
 
     <div class="drawer-section">
+      <p class="drawer-label">Target Language</p>
+      <div class="filter-grid">
+        <button class="filter-btn lang-btn active" data-lang="pl">🇵🇱 Polish</button>
+        <button class="filter-btn lang-btn" data-lang="fr">🇫🇷 French</button>
+      </div>
+    </div>
+
+    <div class="drawer-section">
       <p class="drawer-label">Difficulty</p>
       <div class="filter-grid">
-        <button class="filter-btn active" data-filter="all">All</button>
-        <button class="filter-btn" data-filter="A1">A1</button>
-        <button class="filter-btn" data-filter="A2">A2</button>
-        <button class="filter-btn" data-filter="B1">B1</button>
+        <button class="filter-btn diff-btn active" data-filter="all">All</button>
+        <button class="filter-btn diff-btn" data-filter="A1">A1</button>
+        <button class="filter-btn diff-btn" data-filter="A2">A2</button>
+        <button class="filter-btn diff-btn" data-filter="B1">B1</button>
       </div>
     </div>
 
@@ -384,7 +202,7 @@
       <div class="stat-row"><span class="stat-label">Learned</span><span class="stat-value" id="d-learned">0</span></div>
       <div class="stat-row"><span class="stat-label">Skipped</span><span class="stat-value" id="d-skipped">0</span></div>
       <div class="stat-row"><span class="stat-label">Best streak</span><span class="stat-value" id="d-streak">0</span></div>
-      <div class="stat-row"><span class="stat-label">Cards left</span><span class="stat-value" id="d-left">22</span></div>
+      <div class="stat-row"><span class="stat-label">Cards left</span><span class="stat-value" id="d-left">52</span></div>
     </div>
 
     <button class="drawer-btn drawer-btn-reset" id="btn-reset-drawer">🔄 Reset session</button>
@@ -396,13 +214,11 @@
     </div>
   </nav>
 
-  <!-- Completion screen -->
   <div id="completion">
-    <div class="text-center" style="width:100%;max-width:340px;animation:popIn 0.5s 0.1s both;">
+    <div style="width:100%;max-width:340px;text-align:center;animation:popIn 0.5s 0.1s both;">
       <div style="font-size:80px;margin-bottom:20px;">🎉</div>
       <h2 style="color:#fff;font-size:36px;font-weight:800;margin-bottom:8px;">Well done!</h2>
       <p style="color:rgba(255,255,255,0.6);font-size:16px;margin-bottom:32px;">You went through all the cards!</p>
-
       <div style="background:rgba(255,255,255,0.07);border-radius:24px;padding:24px;margin-bottom:28px;">
         <p style="color:rgba(255,255,255,0.4);font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Results</p>
         <p style="color:#2dd4a4;font-size:64px;font-weight:800;line-height:1;" id="final-learned">0</p>
@@ -419,7 +235,6 @@
           </div>
         </div>
       </div>
-
       <button id="btn-restart" style="background:#2dd4a4;color:#0a2018;font-size:16px;font-weight:800;padding:16px 40px;border-radius:18px;border:none;cursor:pointer;box-shadow:0 8px 32px rgba(45,212,164,0.35);">
         🔄 Play Again
       </button>
@@ -427,40 +242,235 @@
   </div>
 
 <script>
-// ─── DATA ─────────────────────────────────────────────────────────────────────
+// ─── LANGUAGE META ────────────────────────────────────────────────────────────
+const LANG = {
+  pl: { flag: '🇵🇱', name: 'Polish' },
+  fr: { flag: '🇫🇷', name: 'French' },
+};
+
+// ─── DECK (52 cards, EN → PL + FR) ───────────────────────────────────────────
 const DECK = [
-  { en: "I'm not lazy, I'm just on energy saving mode.", pl: "Nie jestem leniwy, jestem w trybie oszczędzania energii.", emoji: "😴", mood: "Relatable", level: "A1", tags: ["humor","everyday"] },
-  { en: "My bed is a magical place where I suddenly remember everything I forgot to do.", pl: "Moje łóżko to magiczne miejsce, gdzie nagle przypominam sobie o wszystkim, co miałem zrobić.", emoji: "🛏️", mood: "Too Real", level: "A2", tags: ["humor","sleep"] },
-  { en: "I followed my heart and it led me to the fridge.", pl: "Podążyłem za sercem i zaprowadziło mnie do lodówki.", emoji: "🍕", mood: "Foodie", level: "A1", tags: ["humor","food"] },
-  { en: "Common sense is like deodorant. The people who need it most never use it.", pl: "Rozsądek jest jak dezodorant. Ludzie, którzy go najbardziej potrzebują, nigdy go nie używają.", emoji: "🤦", mood: "Witty", level: "B1", tags: ["humor","wisdom"] },
-  { en: "I'm on a seafood diet. I see food and I eat it.", pl: "Jestem na diecie rybnej. Widzę jedzenie i jem je.", emoji: "🐟", mood: "Dad Joke", level: "A1", tags: ["humor","food","pun"] },
-  { en: "My wallet is like an onion. When I open it, it makes me cry.", pl: "Mój portfel jest jak cebula. Kiedy go otwieram, przyprawia mnie o płacz.", emoji: "😭", mood: "Sad but True", level: "A2", tags: ["humor","money"] },
-  { en: "I asked the universe for a sign. It sent me a stop sign.", pl: "Poprosiłem wszechświat o znak. Przysłał mi znak STOP.", emoji: "🛑", mood: "Deep", level: "A2", tags: ["humor","philosophy"] },
-  { en: "My WiFi password is the last 8 digits of Pi. Good luck.", pl: "Moje hasło do WiFi to ostatnie 8 cyfr liczby Pi. Powodzenia.", emoji: "📶", mood: "Nerd Humor", level: "B1", tags: ["humor","tech"] },
-  { en: "Life is short. Smile while you still have teeth.", pl: "Życie jest krótkie. Uśmiechaj się, dopóki masz jeszcze zęby.", emoji: "😁", mood: "Dark Funny", level: "A1", tags: ["humor","life"] },
-  { en: "Exercise? I thought you said extra fries.", pl: "Ćwiczenia? Myślałem, że powiedziałeś dodatkowe frytki.", emoji: "🍟", mood: "Relatable", level: "A1", tags: ["humor","food","fitness"] },
-  { en: "I'm not arguing, I'm just explaining why I'm right.", pl: "Nie kłócę się, tylko wyjaśniam, dlaczego mam rację.", emoji: "💬", mood: "Classic", level: "A2", tags: ["humor","personality"] },
-  { en: "My brain has too many tabs open.", pl: "W moim mózgu jest otwartych zbyt wiele zakładek.", emoji: "🧠", mood: "Overthinking", level: "A1", tags: ["humor","tech","everyday"] },
-  { en: "The only marathon I run is a Netflix marathon.", pl: "Jedyny maraton, który biegam, to maraton Netflixa.", emoji: "📺", mood: "Same", level: "A2", tags: ["humor","lazy","pop culture"] },
-  { en: "I finally got eight hours of sleep. It took four days, but whatever.", pl: "W końcu przespałem osiem godzin. Zajęło mi to cztery dni, ale nieważne.", emoji: "💤", mood: "Sleep Deprived", level: "A2", tags: ["humor","sleep"] },
-  { en: "Money can't buy happiness, but it can buy coffee. Close enough.", pl: "Pieniądze nie kupią szczęścia, ale mogą kupić kawę. Wystarczy.", emoji: "☕", mood: "Practical", level: "A2", tags: ["humor","money","coffee"] },
-  { en: "I don't need an alarm clock. My anxiety does that for free.", pl: "Nie potrzebuję budzika. Mój lęk robi to za darmo.", emoji: "😰", mood: "Dark Relatable", level: "A2", tags: ["humor","anxiety","sleep"] },
-  { en: "My house is not messy. It's an obstacle course designed to keep me fit.", pl: "Mój dom nie jest bałaganiarski. To tor przeszkód zaprojektowany, żeby trzymać mnie w formie.", emoji: "🏡", mood: "Optimistic", level: "B1", tags: ["humor","home","fitness"] },
-  { en: "I'm not addicted to coffee. We're just in a very committed relationship.", pl: "Nie jestem uzależniony od kawy. Po prostu jesteśmy w bardzo poważnym związku.", emoji: "☕", mood: "Coffee Lover", level: "A2", tags: ["humor","coffee","relationships"] },
-  { en: "I'm great at multitasking. I can waste time, be unproductive, and procrastinate all at once.", pl: "Jestem świetny w wielozadaniowości. Mogę jednocześnie marnować czas, być nieproduktywny i zwlekać.", emoji: "🙃", mood: "Self-Aware", level: "B1", tags: ["humor","productivity"] },
-  { en: "Technically, the floor is always an option.", pl: "Technicznie rzecz biorąc, podłoga jest zawsze opcją.", emoji: "🛋️", mood: "Floor Gang", level: "A1", tags: ["humor","lazy"] },
-  { en: "I put the 'pro' in procrastination.", pl: "Jestem zawodowym zwlekaczem.", emoji: "⏳", mood: "Pun Alert", level: "A2", tags: ["humor","pun","productivity"] },
-  { en: "Behind every great person is a substantial amount of coffee.", pl: "Za każdą wielką osobą stoi pokaźna ilość kawy.", emoji: "🏆", mood: "Inspirational", level: "A2", tags: ["humor","coffee","motivation"] },
+  // ── Original 22 ──
+  { en:"I'm not lazy, I'm just on energy saving mode.",
+    pl:"Nie jestem leniwy, jestem w trybie oszczędzania energii.",
+    fr:"Je ne suis pas paresseux, je suis juste en mode économie d'énergie.",
+    emoji:"😴", mood:"Relatable", level:"A1", tags:["humor","everyday"] },
+  { en:"My bed is a magical place where I suddenly remember everything I forgot to do.",
+    pl:"Moje łóżko to magiczne miejsce, gdzie nagle przypominam sobie o wszystkim, co miałem zrobić.",
+    fr:"Mon lit est un endroit magique où je me souviens soudainement de tout ce que j'avais oublié de faire.",
+    emoji:"🛏️", mood:"Too Real", level:"A2", tags:["humor","sleep"] },
+  { en:"I followed my heart and it led me to the fridge.",
+    pl:"Podążyłem za sercem i zaprowadziło mnie do lodówki.",
+    fr:"J'ai suivi mon cœur et il m'a mené au frigo.",
+    emoji:"🍕", mood:"Foodie", level:"A1", tags:["humor","food"] },
+  { en:"Common sense is like deodorant. The people who need it most never use it.",
+    pl:"Rozsądek jest jak dezodorant. Ludzie, którzy go najbardziej potrzebują, nigdy go nie używają.",
+    fr:"Le bon sens, c'est comme le déodorant. Ceux qui en ont le plus besoin ne l'utilisent jamais.",
+    emoji:"🤦", mood:"Witty", level:"B1", tags:["humor","wisdom"] },
+  { en:"I'm on a seafood diet. I see food and I eat it.",
+    pl:"Jestem na diecie rybnej. Widzę jedzenie i jem je.",
+    fr:"Je suis au régime fruits de mer. Je vois de la nourriture et je la mange.",
+    emoji:"🐟", mood:"Dad Joke", level:"A1", tags:["humor","food","pun"] },
+  { en:"My wallet is like an onion. When I open it, it makes me cry.",
+    pl:"Mój portfel jest jak cebula. Kiedy go otwieram, przyprawia mnie o płacz.",
+    fr:"Mon portefeuille est comme un oignon. Quand je l'ouvre, ça me fait pleurer.",
+    emoji:"😭", mood:"Sad but True", level:"A2", tags:["humor","money"] },
+  { en:"I asked the universe for a sign. It sent me a stop sign.",
+    pl:"Poprosiłem wszechświat o znak. Przysłał mi znak STOP.",
+    fr:"J'ai demandé un signe à l'univers. Il m'a envoyé un panneau stop.",
+    emoji:"🛑", mood:"Deep", level:"A2", tags:["humor","philosophy"] },
+  { en:"My WiFi password is the last 8 digits of Pi. Good luck.",
+    pl:"Moje hasło do WiFi to ostatnie 8 cyfr liczby Pi. Powodzenia.",
+    fr:"Mon mot de passe WiFi, ce sont les 8 derniers chiffres de Pi. Bonne chance.",
+    emoji:"📶", mood:"Nerd Humor", level:"B1", tags:["humor","tech"] },
+  { en:"Life is short. Smile while you still have teeth.",
+    pl:"Życie jest krótkie. Uśmiechaj się, dopóki masz jeszcze zęby.",
+    fr:"La vie est courte. Souriez pendant que vous avez encore des dents.",
+    emoji:"😁", mood:"Dark Funny", level:"A1", tags:["humor","life"] },
+  { en:"Exercise? I thought you said extra fries.",
+    pl:"Ćwiczenia? Myślałem, że powiedziałeś dodatkowe frytki.",
+    fr:"Du sport ? Je croyais que tu avais dit des frites en plus.",
+    emoji:"🍟", mood:"Relatable", level:"A1", tags:["humor","food","fitness"] },
+  { en:"I'm not arguing, I'm just explaining why I'm right.",
+    pl:"Nie kłócę się, tylko wyjaśniam, dlaczego mam rację.",
+    fr:"Je ne me dispute pas, j'explique juste pourquoi j'ai raison.",
+    emoji:"💬", mood:"Classic", level:"A2", tags:["humor","personality"] },
+  { en:"My brain has too many tabs open.",
+    pl:"W moim mózgu jest otwartych zbyt wiele zakładek.",
+    fr:"Mon cerveau a trop d'onglets ouverts.",
+    emoji:"🧠", mood:"Overthinking", level:"A1", tags:["humor","tech","everyday"] },
+  { en:"The only marathon I run is a Netflix marathon.",
+    pl:"Jedyny maraton, który biegam, to maraton Netflixa.",
+    fr:"Le seul marathon que je cours, c'est un marathon Netflix.",
+    emoji:"📺", mood:"Same", level:"A2", tags:["humor","lazy"] },
+  { en:"I finally got eight hours of sleep. It took four days, but whatever.",
+    pl:"W końcu przespałem osiem godzin. Zajęło mi to cztery dni, ale nieważne.",
+    fr:"J'ai enfin dormi huit heures. Ça m'a pris quatre jours, mais bon.",
+    emoji:"💤", mood:"Sleep Deprived", level:"A2", tags:["humor","sleep"] },
+  { en:"Money can't buy happiness, but it can buy coffee. Close enough.",
+    pl:"Pieniądze nie kupią szczęścia, ale mogą kupić kawę. Wystarczy.",
+    fr:"L'argent ne fait pas le bonheur, mais il peut acheter du café. C'est assez proche.",
+    emoji:"☕", mood:"Practical", level:"A2", tags:["humor","money","coffee"] },
+  { en:"I don't need an alarm clock. My anxiety does that for free.",
+    pl:"Nie potrzebuję budzika. Mój lęk robi to za darmo.",
+    fr:"Je n'ai pas besoin d'un réveil. Mon anxiété le fait gratuitement.",
+    emoji:"😰", mood:"Dark Relatable", level:"A2", tags:["humor","anxiety","sleep"] },
+  { en:"My house is not messy. It's an obstacle course designed to keep me fit.",
+    pl:"Mój dom nie jest bałaganiarski. To tor przeszkód zaprojektowany, żeby trzymać mnie w formie.",
+    fr:"Ma maison n'est pas en désordre. C'est un parcours du combattant pour me garder en forme.",
+    emoji:"🏡", mood:"Optimistic", level:"B1", tags:["humor","home","fitness"] },
+  { en:"I'm not addicted to coffee. We're just in a very committed relationship.",
+    pl:"Nie jestem uzależniony od kawy. Po prostu jesteśmy w bardzo poważnym związku.",
+    fr:"Je ne suis pas accro au café. On est juste dans une relation très sérieuse.",
+    emoji:"☕", mood:"Coffee Lover", level:"A2", tags:["humor","coffee"] },
+  { en:"I'm great at multitasking. I can waste time, be unproductive, and procrastinate all at once.",
+    pl:"Jestem świetny w wielozadaniowości. Mogę jednocześnie marnować czas, być nieproduktywny i zwlekać.",
+    fr:"Je suis très doué pour le multitâche. Je peux perdre du temps, être improductif et procrastiner en même temps.",
+    emoji:"🙃", mood:"Self-Aware", level:"B1", tags:["humor","productivity"] },
+  { en:"Technically, the floor is always an option.",
+    pl:"Technicznie rzecz biorąc, podłoga jest zawsze opcją.",
+    fr:"Techniquement, le sol est toujours une option.",
+    emoji:"🛋️", mood:"Floor Gang", level:"A1", tags:["humor","lazy"] },
+  { en:"I put the 'pro' in procrastination.",
+    pl:"Jestem zawodowym zwlekaczem.",
+    fr:"Je mets le 'pro' dans procrastination.",
+    emoji:"⏳", mood:"Pun Alert", level:"A2", tags:["humor","pun","productivity"] },
+  { en:"Behind every great person is a substantial amount of coffee.",
+    pl:"Za każdą wielką osobą stoi pokaźna ilość kawy.",
+    fr:"Derrière chaque grande personne se trouve une quantité substantielle de café.",
+    emoji:"🏆", mood:"Inspirational", level:"A2", tags:["humor","coffee","motivation"] },
+
+  // ── 30 new cards ──
+  { en:"I'm not short, I'm concentrated awesome.",
+    pl:"Nie jestem niski, jestem skondensowaną wspaniałością.",
+    fr:"Je ne suis pas petit, je suis de l'excellence concentrée.",
+    emoji:"😤", mood:"Self-Love", level:"A2", tags:["humor","confidence"] },
+  { en:"Running late is my cardio.",
+    pl:"Spóźnianie się to moje cardio.",
+    fr:"Être en retard, c'est mon cardio.",
+    emoji:"🏃", mood:"Relatable", level:"A1", tags:["humor","fitness","lazy"] },
+  { en:"I speak fluent sarcasm.",
+    pl:"Mówię płynnie sarkazmem.",
+    fr:"Je parle couramment le sarcasme.",
+    emoji:"😏", mood:"Witty", level:"A1", tags:["humor","personality"] },
+  { en:"The road to success is always under construction.",
+    pl:"Droga do sukcesu jest zawsze w remoncie.",
+    fr:"La route du succès est toujours en travaux.",
+    emoji:"🚧", mood:"Motivational", level:"A2", tags:["humor","motivation"] },
+  { en:"I'm not weird, I'm a limited edition.",
+    pl:"Nie jestem dziwny, jestem edycją limitowaną.",
+    fr:"Je ne suis pas bizarre, je suis une édition limitée.",
+    emoji:"✨", mood:"Sassy", level:"A1", tags:["humor","confidence"] },
+  { en:"A balanced diet is a cookie in each hand.",
+    pl:"Zbilansowana dieta to ciastko w każdej ręce.",
+    fr:"Un régime équilibré, c'est un cookie dans chaque main.",
+    emoji:"🍪", mood:"Foodie", level:"A1", tags:["humor","food","fitness"] },
+  { en:"The bags under my eyes are designer.",
+    pl:"Cienie pod oczami mam od projektanta.",
+    fr:"Les cernes sous mes yeux sont de créateur.",
+    emoji:"👜", mood:"Dark Funny", level:"B1", tags:["humor","sleep","fashion"] },
+  { en:"I'm on a 30-day diet. So far I've lost 15 days.",
+    pl:"Jestem na 30-dniowej diecie. Na razie straciłem 15 dni.",
+    fr:"Je suis un régime de 30 jours. Pour l'instant, j'ai perdu 15 jours.",
+    emoji:"📅", mood:"Relatable", level:"A2", tags:["humor","food","fitness"] },
+  { en:"Age is just a number. A really, really big number.",
+    pl:"Wiek to tylko liczba. Bardzo, bardzo duża liczba.",
+    fr:"L'âge n'est qu'un chiffre. Un très, très grand chiffre.",
+    emoji:"🎂", mood:"Relatable", level:"A1", tags:["humor","life"] },
+  { en:"I'm not messy, I'm creatively organized.",
+    pl:"Nie jestem bałaganiarz, jestem twórczo zorganizowany.",
+    fr:"Je ne suis pas désordonné, je suis organisé de façon créative.",
+    emoji:"🗂️", mood:"Optimistic", level:"A2", tags:["humor","home","personality"] },
+  { en:"My superpower is making plans and then canceling them.",
+    pl:"Moja supermoc to robienie planów i ich odwoływanie.",
+    fr:"Mon superpouvoir, c'est de faire des plans et de les annuler.",
+    emoji:"🦸", mood:"Relatable", level:"B1", tags:["humor","introvert","lazy"] },
+  { en:"I need six months of vacation, twice a year.",
+    pl:"Potrzebuję sześciu miesięcy urlopu, dwa razy w roku.",
+    fr:"J'ai besoin de six mois de vacances, deux fois par an.",
+    emoji:"🏖️", mood:"Same", level:"A2", tags:["humor","work","lazy"] },
+  { en:"My phone battery lasts longer than most of my relationships.",
+    pl:"Moja bateria telefonu wytrzymuje dłużej niż większość moich związków.",
+    fr:"La batterie de mon téléphone dure plus longtemps que la plupart de mes relations.",
+    emoji:"🔋", mood:"Savage", level:"A2", tags:["humor","relationships","tech"] },
+  { en:"I don't need a hairstylist. My pillow gives me a new style every morning.",
+    pl:"Nie potrzebuję fryzjera. Poduszka co rano daje mi nową fryzurę.",
+    fr:"Je n'ai pas besoin d'un coiffeur. Mon oreiller me donne un nouveau style chaque matin.",
+    emoji:"💇", mood:"Same", level:"B1", tags:["humor","sleep","everyday"] },
+  { en:"I'm not late. I just arrive at a different time than everyone else.",
+    pl:"Nie jestem spóźniony. Po prostu przychodzę o innej porze niż wszyscy.",
+    fr:"Je ne suis pas en retard. J'arrive juste à une heure différente de tout le monde.",
+    emoji:"⏰", mood:"Classic", level:"A2", tags:["humor","everyday","personality"] },
+  { en:"I'm not procrastinating. I'm letting ideas marinate.",
+    pl:"Nie zwlekam. Pozwalam pomysłom marynować się.",
+    fr:"Je ne procrastine pas. Je laisse les idées mariner.",
+    emoji:"🤔", mood:"Self-Aware", level:"A2", tags:["humor","productivity"] },
+  { en:"Calories don't count if you eat standing up.",
+    pl:"Kalorie nie liczą się, jeśli jesz na stojąco.",
+    fr:"Les calories ne comptent pas si tu manges debout.",
+    emoji:"🧮", mood:"Foodie", level:"A1", tags:["humor","food","fitness"] },
+  { en:"I'm not antisocial. I'm selectively social. There's a difference.",
+    pl:"Nie jestem antyspołeczny. Jestem selektywnie towarzyski. Jest różnica.",
+    fr:"Je ne suis pas antisocial. Je suis sélectivement social. Il y a une différence.",
+    emoji:"🙋", mood:"Introvert", level:"A2", tags:["humor","introvert","personality"] },
+  { en:"My favorite exercise is jumping to conclusions.",
+    pl:"Moje ulubione ćwiczenie to skakanie do wniosków.",
+    fr:"Mon exercice préféré, c'est de sauter aux conclusions.",
+    emoji:"🏋️", mood:"Witty", level:"B1", tags:["humor","personality","pun"] },
+  { en:"The WiFi went down for 5 minutes so I had to talk to my family. They seem nice.",
+    pl:"WiFi wypadło na 5 minut, więc musiałem porozmawiać z rodziną. Wydają się mili.",
+    fr:"Le WiFi est tombé pendant 5 minutes, alors j'ai dû parler à ma famille. Ils ont l'air sympa.",
+    emoji:"📡", mood:"Too Real", level:"B1", tags:["humor","tech","family"] },
+  { en:"A clean house is the sign of a broken computer.",
+    pl:"Czyste mieszkanie to znak zepsutego komputera.",
+    fr:"Une maison propre est le signe d'un ordinateur cassé.",
+    emoji:"💻", mood:"Nerd Humor", level:"A2", tags:["humor","tech","home"] },
+  { en:"I'm in shape. Round is a shape.",
+    pl:"Jestem w formie. Okrągły to też kształt.",
+    fr:"Je suis en forme. Rond, c'est une forme.",
+    emoji:"⭕", mood:"Dad Joke", level:"A1", tags:["humor","fitness","pun"] },
+  { en:"I tried to be normal once. Worst two minutes of my life.",
+    pl:"Raz próbowałem być normalny. Najgorsze dwie minuty mojego życia.",
+    fr:"J'ai essayé d'être normal une fois. Les deux pires minutes de ma vie.",
+    emoji:"🙃", mood:"Weird", level:"A1", tags:["humor","personality"] },
+  { en:"The human brain stops working the moment you walk into an exam room.",
+    pl:"Ludzki mózg przestaje działać w chwili wejścia na salę egzaminacyjną.",
+    fr:"Le cerveau humain s'arrête de fonctionner au moment où vous entrez dans la salle d'examen.",
+    emoji:"🧪", mood:"Dark Funny", level:"B1", tags:["humor","school","life"] },
+  { en:"Sunglasses: letting people stare at others without getting caught since 1929.",
+    pl:"Okulary słoneczne: pozwalają ludziom gapić się na innych od 1929 roku.",
+    fr:"Lunettes de soleil : permettre aux gens de regarder les autres sans se faire prendre depuis 1929.",
+    emoji:"😎", mood:"Witty", level:"B1", tags:["humor","everyday","fashion"] },
+  { en:"My therapist says I struggle to accept things I can't control. We'll see about that.",
+    pl:"Mój terapeuta mówi, że trudno mi zaakceptować rzeczy, których nie mogę kontrolować. Jeszcze zobaczymy.",
+    fr:"Mon thérapeute dit que j'ai du mal à accepter les choses que je ne peux pas contrôler. On verra bien.",
+    emoji:"😅", mood:"Self-Aware", level:"B1", tags:["humor","philosophy","anxiety"] },
+  { en:"I don't trip. I do random gravity checks.",
+    pl:"Nie potykam się. Przeprowadzam losowe kontrole grawitacji.",
+    fr:"Je ne trébuche pas. Je fais des vérifications aléatoires de la gravité.",
+    emoji:"🌍", mood:"Dad Joke", level:"A1", tags:["humor","everyday","pun"] },
+  { en:"My bed and I are in a committed relationship. I just can't leave.",
+    pl:"Moje łóżko i ja jesteśmy w poważnym związku. Po prostu nie mogę go opuścić.",
+    fr:"Mon lit et moi sommes dans une relation sérieuse. Je ne peux tout simplement pas le quitter.",
+    emoji:"💕", mood:"Relatable", level:"A2", tags:["humor","sleep","relationships"] },
+  { en:"I run on coffee, sarcasm and low battery warnings.",
+    pl:"Działam na kawie, sarkazmie i ostrzeżeniach o niskiej baterii.",
+    fr:"Je fonctionne au café, au sarcasme et aux avertissements de batterie faible.",
+    emoji:"⚡", mood:"Savage", level:"A2", tags:["humor","coffee","tech"] },
+  { en:"I don't have a solution but I do admire the problem.",
+    pl:"Nie mam rozwiązania, ale podziwiam problem.",
+    fr:"Je n'ai pas de solution mais j'admire le problème.",
+    emoji:"🔍", mood:"Witty", level:"B1", tags:["humor","wisdom","work"] },
 ];
 
-const LEVEL_COLOR = { A1: '#22c55e', A2: '#3b82f6', B1: '#f59e0b', B2: '#ef4444' };
+const LEVEL_COLOR = { A1:'#22c55e', A2:'#3b82f6', B1:'#f59e0b', B2:'#ef4444' };
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
-let activeFilter  = 'all';
-let filteredDeck  = [...DECK];
+let activeLang   = 'pl';
+let activeFilter = 'all';
+let filteredDeck = [...DECK];
 let idx = 0, learned = 0, skipped = 0, streak = 0, bestStreak = 0;
-let flipped  = false;
-let dragging = false, startX = 0, dragX = 0;
+let flipped = false, dragging = false, startX = 0, dragX = 0;
 const SWIPE_THRESHOLD = 80;
 
 // ─── REFS ─────────────────────────────────────────────────────────────────────
@@ -473,75 +483,68 @@ const completion = document.getElementById('completion');
 // ─── CARD HTML ────────────────────────────────────────────────────────────────
 function cardHTML(card) {
   const lc   = LEVEL_COLOR[card.level] || '#2dd4a4';
-  const tags = arr => arr.map(t =>
-    `<span style="font-size:11px;color:rgba(255,255,255,0.5);background:rgba(255,255,255,0.1);padding:2px 9px;border-radius:999px;">#${t}</span>`
+  const lang = LANG[activeLang];
+  const tags = card.tags.map(t =>
+    `<span style="font-size:11px;color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.1);padding:2px 9px;border-radius:999px;">#${t}</span>`
   ).join('');
 
   return `
     <div class="stamp stamp-yes">GOT IT!</div>
     <div class="stamp stamp-no">AGAIN</div>
-    <div class="card-scene">
-      <div class="card-inner">
+    <div class="card-scene"><div class="card-inner">
 
-        <!-- FRONT -->
-        <div class="card-face" style="background:#fef8ef;">
+      <!-- FRONT: sentence is the hero -->
+      <div class="card-face" style="background:#fafaf7;display:flex;flex-direction:column;">
 
-          <!-- Top gradient for readability under topbar -->
-          <div style="position:absolute;inset:0 0 auto;height:160px;background:linear-gradient(to bottom,rgba(0,0,0,0.08),transparent);pointer-events:none;z-index:1;"></div>
-
-          <!-- Level + language badge -->
-          <div style="position:absolute;top:calc(var(--safe-top) + 72px);left:0;right:0;padding:0 20px;display:flex;align-items:center;gap:8px;z-index:2;pointer-events:none;">
-            <span style="font-size:19px;">🇬🇧</span>
-            <span style="font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:1px;">English</span>
-            <span style="margin-left:auto;font-size:11px;font-weight:700;color:#fff;background:${lc};padding:3px 10px;border-radius:999px;">${card.level}</span>
-          </div>
-
-          <!-- Emoji center -->
-          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding-bottom:40px;">
-            <span style="font-size:min(22vw,110px);filter:drop-shadow(0 8px 32px rgba(0,0,0,0.12));">${card.emoji}</span>
-          </div>
-
-          <!-- Bottom overlay -->
-          <div style="position:absolute;bottom:0;left:0;right:0;padding:56px 24px calc(var(--safe-bottom) + 120px);background:linear-gradient(to top,rgba(15,25,20,0.92) 0%,rgba(15,25,20,0.6) 55%,transparent 100%);pointer-events:none;">
-            <div style="display:inline-block;background:#d1faf0;padding:3px 12px;border-radius:999px;margin-bottom:10px;">
-              <span style="font-size:11px;font-weight:700;color:#0d6b5a;">${card.mood}</span>
-            </div>
-            <p style="color:#fff;font-size:clamp(17px,4.5vw,22px);font-weight:700;line-height:1.45;margin-bottom:12px;">"${card.en}"</p>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">${tags(card.tags)}</div>
-            <p style="font-size:12px;color:rgba(255,255,255,0.4);">👆 Tap to reveal translation</p>
-          </div>
+        <!-- Top metadata -->
+        <div style="flex-shrink:0;padding:calc(var(--safe-top) + 70px) 20px 0;display:flex;align-items:center;gap:8px;">
+          <span style="font-size:19px;">🇬🇧</span>
+          <span style="font-size:11px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:1px;">English</span>
+          <span style="margin-left:auto;font-size:11px;font-weight:700;color:#fff;background:${lc};padding:3px 10px;border-radius:999px;">${card.level}</span>
         </div>
 
-        <!-- BACK -->
-        <div class="card-face card-back" style="background:linear-gradient(160deg,#0a2420 0%,#0f3830 100%);">
-
-          <!-- Top gradient -->
-          <div style="position:absolute;inset:0 0 auto;height:160px;background:linear-gradient(to bottom,rgba(0,0,0,0.35),transparent);pointer-events:none;z-index:1;"></div>
-
-          <!-- Language badge -->
-          <div style="position:absolute;top:calc(var(--safe-top) + 72px);left:0;right:0;padding:0 20px;display:flex;align-items:center;gap:8px;z-index:2;pointer-events:none;">
-            <span style="font-size:19px;">🇵🇱</span>
-            <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:1px;">Polish</span>
-            <span style="margin-left:auto;font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);background:rgba(255,255,255,0.1);padding:3px 10px;border-radius:999px;">Translation</span>
-          </div>
-
-          <!-- Emoji center -->
-          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding-bottom:40px;">
-            <span style="font-size:min(22vw,110px);opacity:0.85;">${card.emoji}</span>
-          </div>
-
-          <!-- Bottom overlay -->
-          <div style="position:absolute;bottom:0;left:0;right:0;padding:56px 24px calc(var(--safe-bottom) + 120px);background:linear-gradient(to top,rgba(0,0,0,0.75) 0%,rgba(0,0,0,0.4) 55%,transparent 100%);pointer-events:none;">
-            <p style="font-size:13px;color:rgba(255,255,255,0.35);font-style:italic;margin-bottom:10px;line-height:1.4;">"${card.en}"</p>
-            <div style="height:1px;background:rgba(255,255,255,0.12);margin-bottom:12px;"></div>
-            <p style="color:#fff;font-size:clamp(17px,4.5vw,22px);font-weight:700;line-height:1.45;margin-bottom:12px;">"${card.pl}"</p>
-            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">${tags(card.tags)}</div>
-            <p style="font-size:12px;color:rgba(255,255,255,0.3);">👈 Swipe to continue 👉</p>
-          </div>
+        <!-- Center: sentence hero -->
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 28px;text-align:center;">
+          <span style="display:inline-block;background:#d1faf0;padding:3px 13px;border-radius:999px;margin-bottom:18px;">
+            <span style="font-size:11px;font-weight:700;color:#0d6b5a;">${card.mood}</span>
+          </span>
+          <p style="font-size:clamp(19px,5vw,26px);font-weight:800;color:#1a2e26;line-height:1.45;margin-bottom:22px;">"${card.en}"</p>
+          <span style="font-size:52px;line-height:1;">${card.emoji}</span>
         </div>
 
+        <!-- Bottom: tags + hint -->
+        <div style="flex-shrink:0;padding:12px 24px calc(var(--safe-bottom) + 96px);text-align:center;background:linear-gradient(to top,rgba(240,245,242,1) 60%,transparent);">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:10px;">${tags}</div>
+          <p style="font-size:12px;color:#aaa;">👆 Tap to reveal translation</p>
+        </div>
       </div>
-    </div>`;
+
+      <!-- BACK: translation is the hero -->
+      <div class="card-face card-back" style="background:linear-gradient(160deg,#0a2420 0%,#0f3830 100%);display:flex;flex-direction:column;">
+
+        <!-- Top metadata -->
+        <div style="flex-shrink:0;padding:calc(var(--safe-top) + 70px) 20px 0;display:flex;align-items:center;gap:8px;">
+          <span style="font-size:19px;">${lang.flag}</span>
+          <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:1px;">${lang.name}</span>
+          <span style="margin-left:auto;font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);background:rgba(255,255,255,0.1);padding:3px 10px;border-radius:999px;">Translation</span>
+        </div>
+
+        <!-- Center: translation hero -->
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 28px;text-align:center;">
+          <p style="font-size:13px;color:rgba(255,255,255,0.35);font-style:italic;margin-bottom:14px;line-height:1.4;">"${card.en}"</p>
+          <div style="width:36px;height:2px;background:rgba(255,255,255,0.15);border-radius:2px;margin-bottom:14px;"></div>
+          <p style="font-size:clamp(19px,5vw,26px);font-weight:800;color:#fff;line-height:1.45;margin-bottom:22px;">"${card[activeLang]}"</p>
+          <span style="font-size:52px;line-height:1;opacity:0.75;">${card.emoji}</span>
+        </div>
+
+        <!-- Bottom: tags + hint -->
+        <div style="flex-shrink:0;padding:12px 24px calc(var(--safe-bottom) + 96px);text-align:center;">
+          <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:10px;">${tags}</div>
+          <p style="font-size:12px;color:rgba(255,255,255,0.3);">👈 Swipe to continue 👉</p>
+        </div>
+      </div>
+
+    </div></div>`;
 }
 
 // ─── RENDER ───────────────────────────────────────────────────────────────────
@@ -563,11 +566,9 @@ function renderStack() {
 function advanceStack() {
   const oldTop = stackEl.lastElementChild;
   if (oldTop) stackEl.removeChild(oldTop);
-
   Array.from(stackEl.children).forEach(w => {
     w.dataset.stack = String(parseInt(w.dataset.stack) - 1);
   });
-
   const backIdx = idx + 2;
   if (backIdx < filteredDeck.length) {
     const w = document.createElement('div');
@@ -576,10 +577,8 @@ function advanceStack() {
     w.innerHTML = cardHTML(filteredDeck[backIdx]);
     stackEl.insertBefore(w, stackEl.firstChild);
   }
-
   const inner = topInner();
   if (inner) { inner.style.transition = ''; inner.style.transform = ''; }
-
   flipped = false;
   updateMeta();
   attachPointerEvents();
@@ -590,7 +589,6 @@ function updateMeta() {
   counterEl.textContent = `${Math.min(idx + 1, total)} / ${total}`;
   streakEl.textContent  = streak;
   fillEl.style.width    = `${(idx / total) * 100}%`;
-  // Drawer stats
   document.getElementById('d-learned').textContent = learned;
   document.getElementById('d-skipped').textContent = skipped;
   document.getElementById('d-streak').textContent  = bestStreak;
@@ -616,19 +614,15 @@ function flip() {
 function swipeOff(isRight) {
   const inner = topInner();
   if (!inner) return;
-
   const tx       = (isRight ? 1 : -1) * (window.innerWidth + 300);
   const rot      = isRight ? 22 : -22;
   const flipPart = flipped ? ' rotateY(180deg)' : '';
-
-  inner.style.transition = 'transform 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.42s';
+  inner.style.transition = 'transform 0.42s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.42s';
   inner.style.transform  = `translateX(${tx}px) rotate(${rot}deg)${flipPart}`;
   inner.style.opacity    = '0';
-
   if (isRight) { learned++; streak++; bestStreak = Math.max(bestStreak, streak); }
   else         { skipped++; streak = 0; }
   streakEl.textContent = streak;
-
   setTimeout(() => {
     idx++;
     if (idx >= filteredDeck.length) showCompletion();
@@ -643,7 +637,6 @@ function attachPointerEvents() {
   w.addEventListener('mousedown',  onStart);
   w.addEventListener('touchstart', onStart, { passive: true });
 }
-
 function onStart(e) {
   if (e.target.closest('button')) return;
   dragging = true; dragX = 0;
@@ -655,25 +648,19 @@ function onStart(e) {
   document.addEventListener('touchmove', onMove, { passive: false });
   document.addEventListener('touchend',  onEnd);
 }
-
 function onMove(e) {
   if (!dragging) return;
   if (e.cancelable) e.preventDefault();
-  const x = e.touches ? e.touches[0].clientX : e.clientX;
-  dragX = x - startX;
-  const rot      = dragX * 0.06 * (flipped ? -1 : 1);
-  const flipPart = flipped ? ' rotateY(180deg)' : '';
-  const inner    = topInner();
-  if (inner) inner.style.transform = `translateX(${dragX}px) rotate(${rot}deg)${flipPart}`;
-
-  const progress = Math.min(Math.abs(dragX) / SWIPE_THRESHOLD, 1);
+  const x    = e.touches ? e.touches[0].clientX : e.clientX;
+  dragX      = x - startX;
+  const rot  = dragX * 0.06 * (flipped ? -1 : 1);
+  const flip = flipped ? ' rotateY(180deg)' : '';
+  const inner = topInner();
+  if (inner) inner.style.transform = `translateX(${dragX}px) rotate(${rot}deg)${flip}`;
+  const prog = Math.min(Math.abs(dragX) / SWIPE_THRESHOLD, 1);
   const sy = topStampYes(), sn = topStampNo();
-  if (sy && sn) {
-    sy.style.opacity = dragX >  15 ? progress : 0;
-    sn.style.opacity = dragX < -15 ? progress : 0;
-  }
+  if (sy && sn) { sy.style.opacity = dragX > 15 ? prog : 0; sn.style.opacity = dragX < -15 ? prog : 0; }
 }
-
 function onEnd() {
   if (!dragging) return;
   dragging = false;
@@ -681,20 +668,17 @@ function onEnd() {
   document.removeEventListener('mouseup',   onEnd);
   document.removeEventListener('touchmove', onMove);
   document.removeEventListener('touchend',  onEnd);
-
   const inner = topInner();
   const sy = topStampYes(), sn = topStampNo();
   if (sy) sy.style.opacity = 0;
   if (sn) sn.style.opacity = 0;
-
   if (Math.abs(dragX) >= SWIPE_THRESHOLD) {
     swipeOff(dragX > 0);
   } else {
     if (inner) {
-      inner.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      inner.style.transition = 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1)';
       inner.style.transform  = flipped ? 'rotateY(180deg)' : '';
     }
-    // Tap only reveals front→back; tapping the back does nothing so user can read
     if (Math.abs(dragX) < 8 && !flipped) flip();
   }
 }
@@ -715,29 +699,36 @@ document.addEventListener('keydown', e => {
 // ─── DRAWER ───────────────────────────────────────────────────────────────────
 const drawer        = document.getElementById('drawer');
 const drawerOverlay = document.getElementById('drawer-overlay');
-
-function openDrawer()  {
-  updateMeta();
-  drawer.classList.add('open');
-  drawerOverlay.classList.add('open');
-}
-function closeDrawer() {
-  drawer.classList.remove('open');
-  drawerOverlay.classList.remove('open');
-}
-
+function openDrawer()  { updateMeta(); drawer.classList.add('open'); drawerOverlay.classList.add('open'); }
+function closeDrawer() { drawer.classList.remove('open'); drawerOverlay.classList.remove('open'); }
 document.getElementById('btn-menu').addEventListener('click', openDrawer);
 document.getElementById('btn-close-drawer').addEventListener('click', closeDrawer);
 drawerOverlay.addEventListener('click', closeDrawer);
 
-// Difficulty filter
-document.querySelectorAll('.filter-btn').forEach(btn => {
+function rebuildDeck() {
+  filteredDeck = DECK.filter(c => activeFilter === 'all' || c.level === activeFilter);
+  idx = learned = skipped = streak = bestStreak = 0;
+}
+
+// Language buttons
+document.querySelectorAll('.lang-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    activeFilter  = btn.dataset.filter;
-    filteredDeck  = activeFilter === 'all' ? [...DECK] : DECK.filter(c => c.level === activeFilter);
-    idx = learned = skipped = streak = bestStreak = 0;
+    activeLang = btn.dataset.lang;
+    rebuildDeck();
+    closeDrawer();
+    renderStack();
+  });
+});
+
+// Difficulty buttons
+document.querySelectorAll('.diff-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    rebuildDeck();
     closeDrawer();
     renderStack();
   });
@@ -758,7 +749,6 @@ function showCompletion() {
   fillEl.style.width = '100%';
   completion.classList.add('visible');
 }
-
 document.getElementById('btn-restart').addEventListener('click', () => {
   idx = learned = skipped = streak = bestStreak = 0;
   completion.classList.remove('visible');
@@ -767,10 +757,7 @@ document.getElementById('btn-restart').addEventListener('click', () => {
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 renderStack();
-
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js');
-}
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 </script>
 </body>
 </html>

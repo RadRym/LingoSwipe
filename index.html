@@ -421,6 +421,35 @@ function renderStack() {
   attachPointerEvents();
 }
 
+function advanceStack() {
+  // Drop the old top card from DOM (it already flew off screen)
+  const oldTop = stackEl.lastElementChild;
+  if (oldTop) stackEl.removeChild(oldTop);
+
+  // Promote remaining cards one step forward — CSS transition handles the movement
+  Array.from(stackEl.children).forEach(w => {
+    w.dataset.stack = String(parseInt(w.dataset.stack) - 1);
+  });
+
+  // Append a fresh card at the back if the deck has more
+  const backIdx = idx + 2;
+  if (backIdx < DECK.length) {
+    const w = document.createElement('div');
+    w.className = 'card-wrapper';
+    w.dataset.stack = '2';
+    w.innerHTML = cardHTML(DECK[backIdx]);
+    stackEl.insertBefore(w, stackEl.firstChild);
+  }
+
+  // Reset the new top card's inner state
+  const inner = topInner();
+  if (inner) { inner.style.transition = ''; inner.style.transform = ''; }
+
+  flipped = false;
+  updateMeta();
+  attachPointerEvents();
+}
+
 function updateMeta() {
   counterEl.textContent = `${idx + 1} / ${DECK.length}`;
   streakEl.textContent = streak;

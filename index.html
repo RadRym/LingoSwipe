@@ -682,11 +682,14 @@ function attachEvents() {
   const w = topWrapper();
   if (!w) return;
   w.addEventListener('mousedown',  onStart);
-  w.addEventListener('touchstart', onStart, { passive: true });
+  w.addEventListener('touchstart', onStart, { passive: false });
 }
 
 function onStart(e) {
   if (e.target.closest('button')) return;
+  // Prevent the browser firing synthetic mousedown/mouseup after touchend,
+  // which would otherwise double-fire and cancel the flip animation.
+  if (e.cancelable) e.preventDefault();
   dragging = true; dragY = 0;
   const pos = e.touches ? e.touches[0] : e;
   startX = pos.clientX; startY = pos.clientY;

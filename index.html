@@ -62,7 +62,6 @@
     /* ── Flip ── */
     .card-scene { width:100%; height:100%; perspective:1600px; }
     .card-inner { position:relative; width:100%; height:100%; transform-style:preserve-3d;
-      transition:transform 0.55s cubic-bezier(0.175,0.885,0.32,1.275);
       cursor:pointer; will-change:transform; }
     .card-face { position:absolute; inset:0; backface-visibility:hidden;
       -webkit-backface-visibility:hidden; overflow:hidden; }
@@ -583,9 +582,25 @@ function topInner()   { return topWrapper()?.querySelector('.card-inner'); }
 function flip() {
   const inner = topInner();
   if (!inner) return;
+  const from = flipped ? 180 : 0;
+  const to   = flipped ? 0   : 180;
   flipped = !flipped;
-  inner.style.transition = 'transform 0.55s cubic-bezier(0.175,0.885,0.32,1.275)';
-  inner.style.transform  = flipped ? 'rotateY(180deg)' : '';
+
+  inner.getAnimations().forEach(a => a.cancel());
+
+  // Two-phase flip: squish visible faces at 25% and 75%, invisible at 50% (edge-on)
+  const q1 = from + (to - from) * 0.25;
+  const q3 = from + (to - from) * 0.75;
+  const anim = inner.animate([
+    { transform: `rotateY(${from}deg) scale(1)`,    offset: 0    },
+    { transform: `rotateY(${q1}deg)   scale(0.91)`, offset: 0.25 },
+    { transform: `rotateY(${q3}deg)   scale(0.91)`, offset: 0.75 },
+    { transform: `rotateY(${to}deg)   scale(1)`,    offset: 1    },
+  ], { duration: 380, easing: 'ease-in-out', fill: 'none' });
+
+  anim.addEventListener('finish', () => {
+    inner.style.transform = flipped ? 'rotateY(180deg)' : '';
+  });
 }
 
 // ─── SWIPE UP (next card) ─────────────────────────────────────────────────────
@@ -594,7 +609,7 @@ function swipeUp() {
   if (!inner) return;
   const flipPart = flipped ? ' rotateY(180deg)' : '';
   inner.style.transition = 'transform 0.38s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.38s';
-  inner.style.transform  = `translateY(-115vh)${flipPart}`;
+  inner.style.transform  = `translateY(-115vh) rotateX(15deg) scale(0.92)${flipPart}`;
   inner.style.opacity    = '0';
   seen++; streak++; bestStreak = Math.max(bestStreak, streak);
   streakEl.textContent = streak;
@@ -619,7 +634,11 @@ function onStart(e) {
   const pos = e.touches ? e.touches[0] : e;
   startX = pos.clientX; startY = pos.clientY;
   const inner = topInner();
-  if (inner) inner.style.transition = 'none';
+  if (inner) {
+    inner.getAnimations().forEach(a => a.cancel());
+    inner.style.transition = 'none';
+    inner.style.transform  = flipped ? 'rotateY(180deg)' : '';
+  }
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup',   onEnd);
   document.addEventListener('touchmove', onMove, { passive: false });
@@ -635,9 +654,10 @@ function onMove(e) {
   if (dragY >= 0) return;
   const inner = topInner();
   if (!inner) return;
-  const resistance = dragY * 0.45;
+  const resistance = dragY * 0.78;
+  const tilt       = Math.min(Math.abs(dragY) / 8, 6);
   const flipPart   = flipped ? ' rotateY(180deg)' : '';
-  inner.style.transform = `translateY(${resistance}px)${flipPart}`;
+  inner.style.transform = `translateY(${resistance}px) rotateX(${tilt}deg)${flipPart}`;
 }
 
 function onEnd(e) {
@@ -662,7 +682,7 @@ function onEnd(e) {
       inner.style.transform  = flipped ? 'rotateY(180deg)' : '';
     }
     // Tap reveals translation; tapping the back does nothing so user can read it
-    if (Math.abs(dy) < 8 && dx < 8 && !flipped) flip();
+    if (Math.abs(dy) < 8 && dx < 8) flip();
   }
 }
 

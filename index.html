@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>LingoSwipe</title>
+  <title>LingoSwipe — Learn a language by scrolling</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0c1a14">
   <meta name="mobile-web-app-capable" content="yes">
@@ -12,27 +12,158 @@
   <meta name="apple-mobile-web-app-title" content="LingoSwipe">
   <link rel="apple-touch-icon" href="icon.svg">
   <style>
-    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; margin:0; padding:0; }
-    :root { --safe-top: env(safe-area-inset-top,0px); --safe-bottom: env(safe-area-inset-bottom,0px); }
+    /* ── RESET ── */
+    *, *::before, *::after { -webkit-tap-highlight-color:transparent; box-sizing:border-box; margin:0; padding:0; }
+    :root {
+      --safe-top: env(safe-area-inset-top,0px);
+      --safe-bottom: env(safe-area-inset-bottom,0px);
+      --accent: #2dd4a4;
+      --bg: #090f0c;
+      --bg-card: #0c1810;
+      --bg-mid: #0f2218;
+    }
+    html { scroll-behavior:smooth; }
+    body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:var(--bg); color:#fff; line-height:1.6; -webkit-user-select:none; user-select:none; }
 
-    html, body { width:100%; height:100%; overflow:hidden; background:#0c1a14;
-      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-      user-select:none; -webkit-user-select:none; }
+    /* ══════════════════════════════════════════════
+       LANDING PAGE
+    ══════════════════════════════════════════════ */
+    #page-landing { min-height:100vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+    /* ── Navbar ── */
+    .lp-nav { position:sticky; top:0; z-index:50; background:rgba(9,15,12,0.88); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); border-bottom:1px solid rgba(255,255,255,0.07); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; }
+    .lp-logo { display:flex; align-items:center; gap:8px; font-weight:800; font-size:18px; color:#fff; text-decoration:none; }
+    .lp-logo-icon { font-size:22px; }
+    .btn-demo-nav { background:var(--accent); color:#0a2018; font-weight:800; font-size:14px; padding:9px 20px; border-radius:999px; border:none; cursor:pointer; transition:transform 0.15s, opacity 0.15s; white-space:nowrap; }
+    .btn-demo-nav:hover { opacity:0.88; transform:scale(1.03); }
+    .btn-demo-nav:active { transform:scale(0.95); }
+
+    /* ── Hero ── */
+    .lp-hero { padding:64px 24px 72px; max-width:1040px; margin:0 auto; display:flex; align-items:center; gap:64px; }
+    .lp-hero-text { flex:1; min-width:0; }
+    .lp-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(45,212,164,0.1); border:1px solid rgba(45,212,164,0.28); color:var(--accent); font-size:11px; font-weight:700; padding:5px 13px; border-radius:999px; margin-bottom:22px; text-transform:uppercase; letter-spacing:0.6px; }
+    .lp-hero h1 { font-size:clamp(30px,5.5vw,56px); font-weight:900; line-height:1.08; margin-bottom:18px; }
+    .lp-hero h1 em { font-style:normal; color:var(--accent); }
+    .lp-hero-sub { font-size:clamp(15px,1.8vw,17px); color:rgba(255,255,255,0.55); margin-bottom:36px; max-width:460px; line-height:1.75; }
+    .lp-ctas { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+    .btn-primary { background:var(--accent); color:#0a2018; font-weight:800; font-size:16px; padding:14px 30px; border-radius:16px; border:none; cursor:pointer; transition:all 0.15s; box-shadow:0 8px 28px rgba(45,212,164,0.28); }
+    .btn-primary:hover { transform:translateY(-2px); box-shadow:0 12px 36px rgba(45,212,164,0.38); }
+    .btn-primary:active { transform:scale(0.97); }
+    .btn-secondary { background:transparent; color:rgba(255,255,255,0.72); font-weight:700; font-size:15px; padding:14px 22px; border-radius:16px; border:1.5px solid rgba(255,255,255,0.18); cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+    .btn-secondary:hover { border-color:rgba(255,255,255,0.38); color:#fff; }
+
+    /* ── Phone mockup ── */
+    .lp-phone-wrap { flex-shrink:0; display:flex; justify-content:center; }
+    .lp-phone { width:230px; height:450px; background:#0c1a14; border-radius:36px; border:2.5px solid rgba(255,255,255,0.11); box-shadow:0 36px 90px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.06); overflow:hidden; display:flex; flex-direction:column; }
+    .ph-topbar { display:flex; align-items:center; justify-content:space-between; padding:14px 14px 8px; }
+    .ph-logo { display:flex; align-items:center; gap:5px; font-size:12px; font-weight:800; color:#fff; }
+    .ph-streak { display:flex; align-items:center; gap:3px; background:rgba(255,255,255,0.13); border-radius:999px; padding:3px 9px; font-size:11px; font-weight:700; color:#fff; }
+    .ph-card { margin:4px 10px; background:#fafaf7; border-radius:18px; padding:14px 14px 12px; flex:1; display:flex; flex-direction:column; }
+    .ph-card-header { display:flex; align-items:center; gap:5px; margin-bottom:10px; }
+    .ph-card-flag { font-size:14px; }
+    .ph-card-lang { font-size:9px; font-weight:700; color:#bbb; text-transform:uppercase; letter-spacing:.4px; }
+    .ph-card-lvl { margin-left:auto; font-size:9px; font-weight:700; color:#fff; background:#22c55e; padding:2px 7px; border-radius:999px; }
+    .ph-card-mood { display:inline-block; background:#d1faf0; padding:2px 9px; border-radius:999px; font-size:9px; font-weight:700; color:#0d6b5a; margin-bottom:10px; align-self:flex-start; }
+    .ph-card-body { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:10px; }
+    .ph-card-text { font-size:12px; font-weight:800; color:#1a2e26; line-height:1.5; }
+    .ph-card-emoji { font-size:30px; }
+    .ph-hint { display:flex; flex-direction:column; align-items:center; padding:8px 0 4px; gap:1px; }
+    .ph-hint-arrow { font-size:13px; color:rgba(255,255,255,0.25); animation:phFloat 1.8s ease-in-out infinite; }
+    .ph-hint-label { font-size:8px; color:rgba(255,255,255,0.18); font-weight:600; letter-spacing:.3px; }
+    @keyframes phFloat { 0%,100%{transform:translateY(0);opacity:.25} 50%{transform:translateY(-5px);opacity:.5} }
+
+    /* ── Divider ── */
+    .lp-divider { height:1px; background:rgba(255,255,255,0.07); max-width:1040px; margin:0 auto; }
+
+    /* ── Sections ── */
+    .lp-section { padding:64px 24px; max-width:1040px; margin:0 auto; }
+    .lp-section-tag { display:inline-flex; align-items:center; gap:6px; color:var(--accent); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:14px; }
+    .lp-section h2 { font-size:clamp(22px,3.5vw,36px); font-weight:900; line-height:1.2; margin-bottom:36px; }
+    .lp-section h2 em { font-style:normal; color:var(--accent); }
+
+    /* ── Comparison ── */
+    .comp-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .comp-card { border-radius:20px; padding:26px 22px; }
+    .comp-yes { background:rgba(45,212,164,0.07); border:1.5px solid rgba(45,212,164,0.22); }
+    .comp-no  { background:rgba(239,68,68,0.05); border:1.5px solid rgba(239,68,68,0.15); }
+    .comp-head { display:flex; align-items:center; gap:9px; font-weight:800; font-size:15px; margin-bottom:18px; }
+    .comp-head-yes { color:var(--accent); }
+    .comp-head-no  { color:rgba(239,68,68,0.8); }
+    .comp-list { display:flex; flex-direction:column; gap:9px; }
+    .comp-row { display:flex; align-items:flex-start; gap:8px; font-size:13px; color:rgba(255,255,255,0.78); line-height:1.5; }
+    .ci-yes { color:var(--accent); flex-shrink:0; font-size:14px; margin-top:1px; }
+    .ci-no  { color:rgba(239,68,68,0.7); flex-shrink:0; font-size:14px; margin-top:1px; }
+
+    /* ── Steps ── */
+    .steps-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+    .step-card { background:var(--bg-card); border:1px solid rgba(255,255,255,0.07); border-radius:20px; padding:26px 20px; }
+    .step-num { width:34px; height:34px; border-radius:999px; background:rgba(45,212,164,0.13); border:1.5px solid rgba(45,212,164,0.28); color:var(--accent); font-weight:900; font-size:15px; display:flex; align-items:center; justify-content:center; margin-bottom:14px; }
+    .step-icon { font-size:30px; margin-bottom:10px; display:block; }
+    .step-title { font-weight:800; font-size:15px; margin-bottom:5px; }
+    .step-desc { font-size:13px; color:rgba(255,255,255,0.45); line-height:1.65; }
+
+    /* ── Features ── */
+    .feat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .feat-card { background:var(--bg-card); border:1px solid rgba(255,255,255,0.07); border-radius:16px; padding:20px 18px; transition:border-color 0.2s; }
+    .feat-card:hover { border-color:rgba(45,212,164,0.28); }
+    .feat-icon { font-size:26px; margin-bottom:8px; display:block; }
+    .feat-title { font-weight:800; font-size:14px; margin-bottom:4px; }
+    .feat-desc { font-size:12px; color:rgba(255,255,255,0.42); line-height:1.65; }
+    .feat-soon { display:inline-block; font-size:9px; font-weight:700; background:rgba(168,85,247,0.18); color:#c084fc; border:1px solid rgba(168,85,247,0.28); padding:2px 8px; border-radius:999px; margin-top:6px; text-transform:uppercase; letter-spacing:.5px; }
+
+    /* ── Email capture ── */
+    .lp-email-wrap { background:linear-gradient(160deg,#0c1f18 0%,#0f2b22 100%); border-top:1px solid rgba(255,255,255,0.07); border-bottom:1px solid rgba(255,255,255,0.07); }
+    .lp-email-inner { max-width:520px; margin:0 auto; text-align:center; padding:68px 24px; }
+    .lp-email-inner h2 { font-size:clamp(22px,3.2vw,30px); font-weight:900; margin-bottom:10px; }
+    .lp-email-inner p { color:rgba(255,255,255,0.5); font-size:15px; margin-bottom:28px; line-height:1.7; }
+    .email-row { display:flex; gap:10px; max-width:400px; margin:0 auto; }
+    .email-input { flex:1; background:rgba(255,255,255,0.07); border:1.5px solid rgba(255,255,255,0.14); border-radius:14px; padding:13px 16px; color:#fff; font-size:15px; outline:none; transition:border-color 0.2s; min-width:0; -webkit-user-select:text; user-select:text; }
+    .email-input::placeholder { color:rgba(255,255,255,0.32); }
+    .email-input:focus { border-color:var(--accent); }
+    .btn-notify { background:var(--accent); color:#0a2018; font-weight:800; font-size:14px; padding:13px 20px; border-radius:14px; border:none; cursor:pointer; white-space:nowrap; transition:opacity 0.15s; }
+    .btn-notify:hover { opacity:0.88; }
+    #email-success { color:var(--accent); font-weight:700; font-size:15px; display:none; margin-top:18px; }
+
+    /* ── Footer ── */
+    .lp-footer { padding:28px 24px; text-align:center; color:rgba(255,255,255,0.22); font-size:13px; border-top:1px solid rgba(255,255,255,0.06); }
+    .lp-footer a { color:var(--accent); text-decoration:none; }
+    .lp-footer a:hover { text-decoration:underline; }
+
+    /* ── Responsive ── */
+    @media (max-width:720px) {
+      .lp-hero { flex-direction:column-reverse; padding:40px 20px 56px; gap:32px; }
+      .lp-phone { width:190px; height:370px; }
+      .comp-grid { grid-template-columns:1fr; }
+      .steps-grid { grid-template-columns:1fr; }
+      .feat-grid { grid-template-columns:1fr 1fr; }
+      .email-row { flex-direction:column; }
+    }
+    @media (max-width:420px) {
+      .feat-grid { grid-template-columns:1fr; }
+    }
+
+    /* ══════════════════════════════════════════════
+       APP / DEMO PAGE
+    ══════════════════════════════════════════════ */
+    #page-demo { display:none; position:fixed; inset:0; z-index:500; background:#0c1a14; }
+    #page-demo.visible { display:block; }
+
+    /* When demo is active, body should not scroll */
+    body.demo-open { overflow:hidden; }
 
     /* ── Progress bar ── */
     #progress-bar { position:fixed; top:var(--safe-top); left:0; right:0; height:3px;
-      background:rgba(255,255,255,0.1); z-index:70; }
+      background:rgba(255,255,255,0.1); z-index:570; }
     #progress-fill { height:100%; background:#2dd4a4; border-radius:0 2px 2px 0;
       transition:width 0.4s ease; width:0%; }
 
     /* ── Floating top bar ── */
-    #topbar { position:fixed; top:0; left:0; right:0; z-index:60;
+    #topbar { position:fixed; top:0; left:0; right:0; z-index:560;
       padding:calc(var(--safe-top) + 14px) 18px 40px;
       background:linear-gradient(to bottom,rgba(0,0,0,0.55) 0%,transparent 100%);
       display:flex; align-items:center; justify-content:space-between; pointer-events:none; }
     #topbar > * { pointer-events:auto; }
     .logo { display:flex; align-items:center; gap:7px; color:#fff; font-weight:800; font-size:18px; }
-    .logo span:first-child { font-size:22px; }
     .topbar-right { display:flex; align-items:center; gap:10px; }
     .streak-pill { display:flex; align-items:center; gap:5px; background:rgba(255,255,255,0.15);
       backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.2);
@@ -44,17 +175,19 @@
       transition:background 0.15s, transform 0.1s; }
     .icon-btn:active { transform:scale(0.88); }
 
+    /* ── Back button ── */
+    #btn-back { font-size:20px; line-height:1; }
+
     /* ── Counter ── */
     #counter { position:fixed; top:calc(var(--safe-top) + 62px); left:50%;
-      transform:translateX(-50%); z-index:59; color:rgba(255,255,255,0.4);
+      transform:translateX(-50%); z-index:559; color:rgba(255,255,255,0.4);
       font-size:12px; font-weight:600; letter-spacing:0.5px; pointer-events:none; }
 
     /* ── Card stack (full screen) ── */
-    #card-stack { position:fixed; inset:0; z-index:10; }
+    #card-stack { position:fixed; inset:0; z-index:510; }
 
     .card-wrapper { position:absolute; inset:0; will-change:transform;
       transition:transform 0.42s cubic-bezier(0.34,1.56,0.64,1), filter 0.42s ease; }
-    /* Peek cards sit slightly below — makes upward swipe feel natural */
     .card-wrapper[data-stack="0"] { z-index:10; transform:translateY(0) scale(1); }
     .card-wrapper[data-stack="1"] { z-index:9;  transform:translateY(18px) scale(0.95); filter:brightness(0.78); }
     .card-wrapper[data-stack="2"] { z-index:8;  transform:translateY(36px) scale(0.90); filter:brightness(0.58); }
@@ -78,12 +211,12 @@
     }
 
     /* ── Drawer overlay ── */
-    #drawer-overlay { position:fixed; inset:0; z-index:80; background:rgba(0,0,0,0);
+    #drawer-overlay { position:fixed; inset:0; z-index:580; background:rgba(0,0,0,0);
       pointer-events:none; transition:background 0.3s; }
     #drawer-overlay.open { background:rgba(0,0,0,0.55); pointer-events:auto; }
 
     /* ── Drawer ── */
-    #drawer { position:fixed; top:0; right:0; bottom:0; width:min(300px,85vw); z-index:90;
+    #drawer { position:fixed; top:0; right:0; bottom:0; width:min(300px,85vw); z-index:590;
       background:#0f2b22; border-left:1px solid rgba(255,255,255,0.08);
       transform:translateX(100%); transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);
       display:flex; flex-direction:column;
@@ -133,7 +266,7 @@
       font-size:12px; line-height:1.8; margin-top:auto; }
 
     /* ── Completion ── */
-    #completion { position:fixed; inset:0; z-index:100;
+    #completion { position:fixed; inset:0; z-index:600;
       background:linear-gradient(160deg,#0c1a14 0%,#0d2b2b 100%);
       display:none; flex-direction:column; align-items:center; justify-content:center; padding:2rem; }
     #completion.visible { display:flex; animation:popIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275); }
@@ -142,10 +275,189 @@
 </head>
 <body>
 
+<!-- ════════════════════════════════════════════════════════
+     LANDING PAGE
+════════════════════════════════════════════════════════ -->
+<div id="page-landing">
+
+  <nav class="lp-nav">
+    <a class="lp-logo" href="#"><span class="lp-logo-icon">🌍</span><span>LingoSwipe</span></a>
+    <button class="btn-demo-nav" onclick="showDemo()">📱 Try Demo</button>
+  </nav>
+
+  <!-- Hero -->
+  <section class="lp-hero">
+    <div class="lp-hero-text">
+      <div class="lp-badge">✨ Open prototype · v0.1</div>
+      <h1>Learn a language<br><em>by scrolling.</em><br>No lessons. No pressure.</h1>
+      <p class="lp-hero-sub">Swipe through funny sentences in your target language. Tap to flip and reveal the translation. That's it — no guilt, no streak-shaming, no daily obligations.</p>
+      <div class="lp-ctas">
+        <button class="btn-primary" onclick="showDemo()">📱 Try the Demo</button>
+        <button class="btn-secondary" onclick="document.getElementById('email-section').scrollIntoView({behavior:'smooth'})">🔔 Notify me at launch</button>
+      </div>
+    </div>
+    <div class="lp-phone-wrap">
+      <div class="lp-phone">
+        <div class="ph-topbar">
+          <div class="ph-logo"><span>🌍</span><span>LingoSwipe</span></div>
+          <div class="ph-streak">🔥 <span>7</span></div>
+        </div>
+        <div class="ph-card">
+          <div class="ph-card-header">
+            <span class="ph-card-flag">🇬🇧</span>
+            <span class="ph-card-lang">English</span>
+            <span class="ph-card-lvl">A1</span>
+          </div>
+          <span class="ph-card-mood">Relatable</span>
+          <div class="ph-card-body">
+            <p class="ph-card-text">"I followed my heart and it led me to the fridge."</p>
+            <span class="ph-card-emoji">🍕</span>
+          </div>
+        </div>
+        <div class="ph-hint">
+          <span class="ph-hint-arrow">↑</span>
+          <span class="ph-hint-label">swipe up</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="lp-divider"></div>
+
+  <!-- Why LingoSwipe -->
+  <section class="lp-section">
+    <div class="lp-section-tag">💡 Why LingoSwipe</div>
+    <h2>An app that doesn't<br><em>guilt-trip you</em></h2>
+    <div class="comp-grid">
+      <div class="comp-card comp-yes">
+        <div class="comp-head"><span class="comp-head-yes">🌍</span> LingoSwipe ✅</div>
+        <div class="comp-list">
+          <div class="comp-row"><span class="ci-yes">✓</span> Scroll for fun — like TikTok</div>
+          <div class="comp-row"><span class="ci-yes">✓</span> Funny AI-generated sentences</div>
+          <div class="comp-row"><span class="ci-yes">✓</span> No registration, no account</div>
+          <div class="comp-row"><span class="ci-yes">✓</span> Zero streak-shaming</div>
+          <div class="comp-row"><span class="ci-yes">✓</span> Home screen widget — passive learning</div>
+          <div class="comp-row"><span class="ci-yes">✓</span> 2 minutes of joy, then back to life</div>
+        </div>
+      </div>
+      <div class="comp-card comp-no">
+        <div class="comp-head"><span class="comp-head-no">🦉</span> Duolingo / Anki ❌</div>
+        <div class="comp-list">
+          <div class="comp-row"><span class="ci-no">✗</span> Feel guilty when you skip a day</div>
+          <div class="comp-row"><span class="ci-no">✗</span> Dry, static vocabulary lists</div>
+          <div class="comp-row"><span class="ci-no">✗</span> Requires account &amp; setup</div>
+          <div class="comp-row"><span class="ci-no">✗</span> Streak-shaming &amp; red screens</div>
+          <div class="comp-row"><span class="ci-no">✗</span> Must open the app every single day</div>
+          <div class="comp-row"><span class="ci-no">✗</span> Feels like homework</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="lp-divider"></div>
+
+  <!-- How it works -->
+  <section class="lp-section">
+    <div class="lp-section-tag">⚡ How it works</div>
+    <h2>Three steps. <em>That's it.</em></h2>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <span class="step-icon">📱</span>
+        <div class="step-title">Open the app</div>
+        <div class="step-desc">No login, no setup. Pick your language pair and you're in. English, Polish, and French to start.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <span class="step-icon">👆</span>
+        <div class="step-title">Swipe &amp; tap</div>
+        <div class="step-desc">Swipe up for the next card. Tap anywhere to flip and see the translation. Repeat as long as you feel like it.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <span class="step-icon">🚶</span>
+        <div class="step-title">Go back to your life</div>
+        <div class="step-desc">No lesson to finish, no streak to protect. Close whenever. Language absorbs without forcing.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="lp-divider"></div>
+
+  <!-- Features -->
+  <section class="lp-section">
+    <div class="lp-section-tag">🚀 What's inside</div>
+    <h2>Everything you need.<br><em>Nothing you don't.</em></h2>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <span class="feat-icon">😂</span>
+        <div class="feat-title">Funny sentences</div>
+        <div class="feat-desc">50+ humorous quotes that are actually fun to read — not "the cat is on the mat".</div>
+      </div>
+      <div class="feat-card">
+        <span class="feat-icon">📚</span>
+        <div class="feat-title">Basic phrases</div>
+        <div class="feat-desc">30 real-world starter sentences: greetings, travel, café, emergencies — things you actually use.</div>
+      </div>
+      <div class="feat-card">
+        <span class="feat-icon">🇬🇧🇵🇱🇫🇷</span>
+        <div class="feat-title">3 languages</div>
+        <div class="feat-desc">English, Polish, French — swap in any direction. Change pairs anytime from the menu.</div>
+      </div>
+      <div class="feat-card">
+        <span class="feat-icon">🎯</span>
+        <div class="feat-title">A1 – B2 levels</div>
+        <div class="feat-desc">Filter cards by difficulty so you always see content that matches where you are.</div>
+      </div>
+      <div class="feat-card">
+        <span class="feat-icon">🤖</span>
+        <div class="feat-title">AI Daily Deck</div>
+        <div class="feat-desc">Fresh AI-generated sentences every day, based on trending topics. A real reason to come back.</div>
+        <span class="feat-soon">Coming soon</span>
+      </div>
+      <div class="feat-card">
+        <span class="feat-icon">📱</span>
+        <div class="feat-title">Home screen widget</div>
+        <div class="feat-desc">See a new sentence without opening the app. Passive language exposure at zero effort.</div>
+        <span class="feat-soon">Coming soon</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Email capture -->
+  <div id="email-section" class="lp-email-wrap">
+    <div class="lp-email-inner">
+      <div class="lp-badge" style="margin-bottom:16px;">🔔 Early access</div>
+      <h2>Be the first to know<br>when the app launches</h2>
+      <p>Drop your email and we'll ping you when LingoSwipe hits the app stores. No spam — one email, ever.</p>
+      <div class="email-row" id="email-form">
+        <input class="email-input" type="email" id="email-input" placeholder="you@example.com" />
+        <button class="btn-notify" onclick="handleEmailSubmit()">🔔 Notify me</button>
+      </div>
+      <p id="email-success">🎉 You're on the list! We'll reach out when it's ready.</p>
+    </div>
+  </div>
+
+  <footer class="lp-footer">
+    <p>🌍 LingoSwipe &nbsp;·&nbsp; Built with ☕ and vibe coding &nbsp;·&nbsp; v0.1 prototype</p>
+    <p style="margin-top:6px;"><a href="#" onclick="showDemo();return false;">Try the demo →</a> &nbsp;·&nbsp; <a href="https://github.com/RadRym/LingoSwipe" target="_blank">GitHub</a></p>
+  </footer>
+
+</div><!-- /page-landing -->
+
+
+<!-- ════════════════════════════════════════════════════════
+     APP / DEMO
+════════════════════════════════════════════════════════ -->
+<div id="page-demo">
+
   <div id="progress-bar"><div id="progress-fill"></div></div>
 
   <header id="topbar">
-    <div class="logo"><span>🌍</span><span>LingoSwipe</span></div>
+    <div class="logo">
+      <button class="icon-btn" id="btn-back" onclick="showLanding()" aria-label="Back to landing" style="width:36px;height:36px;font-size:18px;line-height:1;">←</button>
+      <span style="font-size:22px;">🌍</span><span>LingoSwipe</span>
+    </div>
     <div class="topbar-right">
       <div class="streak-pill"><span>🔥</span><span id="streak">0</span></div>
       <button class="icon-btn" id="btn-menu" aria-label="Menu">
@@ -244,7 +556,40 @@
     </div>
   </div>
 
+</div><!-- /page-demo -->
+
+
 <script>
+// ─── PAGE ROUTING ─────────────────────────────────────────────────────────────
+let appReady = false;
+
+function showDemo() {
+  document.getElementById('page-landing').style.display = 'none';
+  document.getElementById('page-demo').classList.add('visible');
+  document.body.classList.add('demo-open');
+  history.pushState(null, '', '#demo');
+  if (!appReady) { renderStack(); appReady = true; }
+}
+
+function showLanding() {
+  document.getElementById('page-demo').classList.remove('visible');
+  document.getElementById('page-landing').style.display = '';
+  document.body.classList.remove('demo-open');
+  history.pushState(null, '', location.pathname);
+}
+
+window.addEventListener('popstate', () => {
+  if (location.hash === '#demo') showDemo(); else showLanding();
+});
+
+function handleEmailSubmit() {
+  const val = document.getElementById('email-input').value.trim();
+  if (!val || !val.includes('@')) { document.getElementById('email-input').focus(); return; }
+  document.getElementById('email-form').style.display = 'none';
+  document.getElementById('email-success').style.display = 'block';
+  try { localStorage.setItem('ls_notify_email', val); } catch(e) {}
+}
+
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 const LANG = {
   en: { flag:'🇬🇧', name:'English' },
@@ -506,7 +851,7 @@ const DECK_BASIC = [
 const DECKS = {
   funny:  DECK,
   basic:  DECK_BASIC,
-  random: [], // AI-generated — coming soon
+  random: [],
 };
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
@@ -588,9 +933,9 @@ function renderStack() {
   const visible = Math.min(3, filteredDeck.length - idx);
   for (let i = visible - 1; i >= 0; i--) {
     const w = document.createElement('div');
-    w.className   = 'card-wrapper';
+    w.className     = 'card-wrapper';
     w.dataset.stack = i;
-    w.innerHTML   = cardHTML(filteredDeck[idx + i]);
+    w.innerHTML     = cardHTML(filteredDeck[idx + i]);
     stackEl.appendChild(w);
   }
   flipped = false;
@@ -642,7 +987,7 @@ function flip() {
   flipped = !flipped;
 
   inner.getAnimations().forEach(a => a.cancel());
-  inner.style.transition = 'none'; // prevent CSS transition from interfering
+  inner.style.transition = 'none';
 
   const q1 = from + (to - from) * 0.25;
   const q3 = from + (to - from) * 0.75;
@@ -656,7 +1001,7 @@ function flip() {
   anim.addEventListener('finish', () => {
     inner.style.transition = '';
     inner.style.transform  = flipped ? 'rotateY(180deg)' : '';
-    anim.cancel(); // release fill:forwards so inline style takes over cleanly
+    anim.cancel();
   });
 }
 
@@ -687,8 +1032,6 @@ function attachEvents() {
 
 function onStart(e) {
   if (e.target.closest('button')) return;
-  // Prevent the browser firing synthetic mousedown/mouseup after touchend,
-  // which would otherwise double-fire and cancel the flip animation.
   if (e.cancelable) e.preventDefault();
   dragging = true; dragY = 0;
   const pos = e.touches ? e.touches[0] : e;
@@ -710,7 +1053,6 @@ function onMove(e) {
   if (e.cancelable) e.preventDefault();
   const pos = e.touches ? e.touches[0] : e;
   dragY = pos.clientY - startY;
-  // Only allow upward drag
   if (dragY >= 0) return;
   const inner = topInner();
   if (!inner) return;
@@ -736,10 +1078,8 @@ function onEnd(e) {
   if (dy < -SWIPE_THRESHOLD) {
     swipeUp();
   } else if (Math.abs(dy) < 8 && dx < 8) {
-    // Tap — flip front↔back
     flip();
   } else {
-    // Snap back with spring
     if (inner) {
       inner.style.transition = 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1)';
       inner.style.transform  = flipped ? 'rotateY(180deg)' : '';
@@ -749,7 +1089,7 @@ function onEnd(e) {
 
 // ─── KEYBOARD ─────────────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
-  if (idx >= filteredDeck.length) return;
+  if (!appReady || idx >= filteredDeck.length) return;
   if (e.key === 'ArrowUp' || e.key === ' ') { e.preventDefault(); swipeUp(); }
   if (e.key === 'Enter')                    { e.preventDefault(); flip(); }
 });
@@ -763,6 +1103,7 @@ document.getElementById('btn-menu').addEventListener('click', openDrawer);
 document.getElementById('btn-close-drawer').addEventListener('click', closeDrawer);
 drawerOverlay.addEventListener('click', closeDrawer);
 
+// ─── DECK BUILDING ────────────────────────────────────────────────────────────
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -777,13 +1118,13 @@ function rebuildDeck() {
   idx = seen = streak = bestStreak = 0;
 }
 
-// Language pair — dropdowns + swap
+// ─── LANGUAGE PAIR ────────────────────────────────────────────────────────────
 const selFrom = document.getElementById('lang-from');
 const selTo   = document.getElementById('lang-to');
 
 function applyPairFromSelects() {
   const f = selFrom.value, t = selTo.value;
-  if (f === t) return; // same language on both sides — ignore
+  if (f === t) return;
   activePair = `${f}-${t}`;
   rebuildDeck(); renderStack();
 }
@@ -795,34 +1136,34 @@ document.getElementById('btn-swap').addEventListener('click', () => {
   const prev = selFrom.value;
   selFrom.value = selTo.value;
   selTo.value   = prev;
-  // Animate the button spin
   const btn = document.getElementById('btn-swap');
   btn.style.transform = 'rotate(180deg)';
   setTimeout(() => { btn.style.transform = ''; }, 350);
   applyPairFromSelects();
 });
 
-// Deck selector
+// ─── DECK SELECTOR ────────────────────────────────────────────────────────────
 document.querySelectorAll('.deck-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const deck = btn.dataset.deck;
     if (deck === 'random') {
-      // Show a small toast — logic coming later
       let toast = document.getElementById('ai-toast');
       if (!toast) {
         toast = document.createElement('div');
         toast.id = 'ai-toast';
         toast.style.cssText = `position:fixed;bottom:calc(var(--safe-bottom)+24px);left:50%;
           transform:translateX(-50%);background:#7c3aed;color:#fff;font-size:13px;
-          font-weight:700;padding:10px 20px;border-radius:999px;z-index:200;
-          box-shadow:0 4px 20px rgba(124,58,237,0.5);pointer-events:none;
-          animation:toastIn 0.3s cubic-bezier(0.34,1.56,0.64,1);`;
+          font-weight:700;padding:10px 20px;border-radius:999px;z-index:700;
+          box-shadow:0 4px 20px rgba(124,58,237,0.5);pointer-events:none;`;
+        const s = document.createElement('style');
+        s.textContent = `@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}`;
+        document.head.appendChild(s);
         document.body.appendChild(toast);
-        const style = document.createElement('style');
-        style.textContent = `@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}`;
-        document.head.appendChild(style);
       }
       toast.textContent = '🤖 AI deck coming soon!';
+      toast.style.animation = 'none';
+      toast.offsetHeight; // reflow
+      toast.style.animation = 'toastIn 0.3s cubic-bezier(0.34,1.56,0.64,1)';
       toast.style.display = 'block';
       clearTimeout(toast._t);
       toast._t = setTimeout(() => { toast.style.display = 'none'; }, 2200);
@@ -837,7 +1178,7 @@ document.querySelectorAll('.deck-btn').forEach(btn => {
   });
 });
 
-// Difficulty
+// ─── DIFFICULTY ───────────────────────────────────────────────────────────────
 document.querySelectorAll('.diff-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
@@ -847,7 +1188,7 @@ document.querySelectorAll('.diff-btn').forEach(btn => {
   });
 });
 
-// Reset
+// ─── RESET ────────────────────────────────────────────────────────────────────
 document.getElementById('btn-reset-drawer').addEventListener('click', () => {
   idx = seen = streak = bestStreak = 0;
   closeDrawer(); renderStack();
@@ -867,8 +1208,11 @@ document.getElementById('btn-restart').addEventListener('click', () => {
 });
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
-renderStack();
+// App is initialized lazily in showDemo() — not here
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+
+// Handle direct link to #demo
+if (location.hash === '#demo') showDemo();
 </script>
 </body>
 </html>

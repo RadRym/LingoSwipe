@@ -32,25 +32,25 @@
 
     /* ── Navbar ── */
     .lp-nav { position:sticky; top:0; z-index:50; background:rgba(9,15,12,0.88); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); border-bottom:1px solid rgba(255,255,255,0.07); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; }
-    .lp-logo { display:flex; align-items:center; gap:8px; font-weight:800; font-size:18px; color:#fff; text-decoration:none; }
-    .lp-logo-icon { font-size:22px; }
-    .btn-demo-nav { background:var(--accent); color:#0a2018; font-weight:800; font-size:14px; padding:9px 20px; border-radius:999px; border:none; cursor:pointer; transition:transform 0.15s, opacity 0.15s; white-space:nowrap; }
-    .btn-demo-nav:hover { opacity:0.88; transform:scale(1.03); }
-    .btn-demo-nav:active { transform:scale(0.95); }
+    .lp-logo { display:flex; align-items:center; gap:10px; font-weight:800; font-size:18px; color:#fff; text-decoration:none; }
+    .lp-logo-icon { font-size:20px; line-height:1; }
+    .btn-demo-nav { background:var(--accent); color:#0a2018; font-weight:700; font-size:14px; padding:9px 22px; border-radius:8px; border:none; cursor:pointer; transition:transform 0.15s, opacity 0.15s; white-space:nowrap; letter-spacing:0.2px; }
+    .btn-demo-nav:hover { opacity:0.88; transform:translateY(-1px); }
+    .btn-demo-nav:active { transform:scale(0.97); }
 
     /* ── Hero ── */
     .lp-hero { padding:64px 24px 72px; max-width:1040px; margin:0 auto; display:flex; align-items:center; gap:64px; }
     .lp-hero-text { flex:1; min-width:0; }
-    .lp-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(45,212,164,0.1); border:1px solid rgba(45,212,164,0.28); color:var(--accent); font-size:11px; font-weight:700; padding:5px 13px; border-radius:999px; margin-bottom:22px; text-transform:uppercase; letter-spacing:0.6px; }
+    .lp-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(45,212,164,0.08); border:1px solid rgba(45,212,164,0.22); color:var(--accent); font-size:11px; font-weight:600; padding:5px 13px; border-radius:6px; margin-bottom:22px; text-transform:uppercase; letter-spacing:0.8px; }
     .lp-hero h1 { font-size:clamp(30px,5.5vw,56px); font-weight:900; line-height:1.08; margin-bottom:18px; }
     .lp-hero h1 em { font-style:normal; color:var(--accent); }
-    .lp-hero-sub { font-size:clamp(15px,1.8vw,17px); color:rgba(255,255,255,0.55); margin-bottom:36px; max-width:460px; line-height:1.75; }
+    .lp-hero-sub { font-size:clamp(15px,1.8vw,17px); color:rgba(255,255,255,0.52); margin-bottom:36px; max-width:460px; line-height:1.78; }
     .lp-ctas { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
-    .btn-primary { background:var(--accent); color:#0a2018; font-weight:800; font-size:16px; padding:14px 30px; border-radius:16px; border:none; cursor:pointer; transition:all 0.15s; box-shadow:0 8px 28px rgba(45,212,164,0.28); }
-    .btn-primary:hover { transform:translateY(-2px); box-shadow:0 12px 36px rgba(45,212,164,0.38); }
+    .btn-primary { background:var(--accent); color:#0a2018; font-weight:700; font-size:15px; padding:13px 28px; border-radius:8px; border:none; cursor:pointer; transition:all 0.15s; letter-spacing:0.2px; }
+    .btn-primary:hover { opacity:0.9; transform:translateY(-1px); }
     .btn-primary:active { transform:scale(0.97); }
-    .btn-secondary { background:transparent; color:rgba(255,255,255,0.72); font-weight:700; font-size:15px; padding:14px 22px; border-radius:16px; border:1.5px solid rgba(255,255,255,0.18); cursor:pointer; transition:all 0.15s; white-space:nowrap; }
-    .btn-secondary:hover { border-color:rgba(255,255,255,0.38); color:#fff; }
+    .btn-secondary { background:transparent; color:rgba(255,255,255,0.65); font-weight:600; font-size:15px; padding:13px 22px; border-radius:8px; border:1.5px solid rgba(255,255,255,0.15); cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+    .btn-secondary:hover { border-color:rgba(255,255,255,0.32); color:#fff; }
 
     /* ── Phone mockup ── */
     .lp-phone-wrap { flex-shrink:0; display:flex; justify-content:center; }
@@ -77,52 +77,56 @@
 
     /* ── Sections ── */
     .lp-section { padding:64px 24px; max-width:1040px; margin:0 auto; }
-    .lp-section-tag { display:inline-flex; align-items:center; gap:6px; color:var(--accent); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:14px; }
+    .lp-section-tag { display:block; color:var(--accent); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:12px; }
     .lp-section h2 { font-size:clamp(22px,3.5vw,36px); font-weight:900; line-height:1.2; margin-bottom:36px; }
     .lp-section h2 em { font-style:normal; color:var(--accent); }
 
     /* ── Comparison ── */
     .comp-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-    .comp-card { border-radius:20px; padding:26px 22px; }
-    .comp-yes { background:rgba(45,212,164,0.07); border:1.5px solid rgba(45,212,164,0.22); }
-    .comp-no  { background:rgba(239,68,68,0.05); border:1.5px solid rgba(239,68,68,0.15); }
-    .comp-head { display:flex; align-items:center; gap:9px; font-weight:800; font-size:15px; margin-bottom:18px; }
-    .comp-head-yes { color:var(--accent); }
-    .comp-head-no  { color:rgba(239,68,68,0.8); }
-    .comp-list { display:flex; flex-direction:column; gap:9px; }
-    .comp-row { display:flex; align-items:flex-start; gap:8px; font-size:13px; color:rgba(255,255,255,0.78); line-height:1.5; }
-    .ci-yes { color:var(--accent); flex-shrink:0; font-size:14px; margin-top:1px; }
-    .ci-no  { color:rgba(239,68,68,0.7); flex-shrink:0; font-size:14px; margin-top:1px; }
+    .comp-card { border-radius:12px; padding:28px 24px; }
+    .comp-yes { background:rgba(45,212,164,0.06); border:1px solid rgba(45,212,164,0.2); }
+    .comp-no  { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); }
+    .comp-head { display:flex; align-items:center; gap:10px; font-weight:800; font-size:15px; margin-bottom:20px; }
+    .comp-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .comp-dot-yes { background:var(--accent); }
+    .comp-dot-no  { background:rgba(255,255,255,0.25); }
+    .comp-head-yes { color:#fff; }
+    .comp-head-no  { color:rgba(255,255,255,0.6); }
+    .comp-list { display:flex; flex-direction:column; gap:10px; }
+    .comp-row { display:flex; align-items:flex-start; gap:10px; font-size:13.5px; color:rgba(255,255,255,0.7); line-height:1.5; }
+    .ci-yes { color:var(--accent); flex-shrink:0; font-size:13px; margin-top:2px; font-weight:700; }
+    .ci-no  { color:rgba(255,255,255,0.25); flex-shrink:0; font-size:13px; margin-top:2px; font-weight:700; }
 
     /* ── Steps ── */
     .steps-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
-    .step-card { background:var(--bg-card); border:1px solid rgba(255,255,255,0.07); border-radius:20px; padding:26px 20px; }
-    .step-num { width:34px; height:34px; border-radius:999px; background:rgba(45,212,164,0.13); border:1.5px solid rgba(45,212,164,0.28); color:var(--accent); font-weight:900; font-size:15px; display:flex; align-items:center; justify-content:center; margin-bottom:14px; }
-    .step-icon { font-size:30px; margin-bottom:10px; display:block; }
-    .step-title { font-weight:800; font-size:15px; margin-bottom:5px; }
-    .step-desc { font-size:13px; color:rgba(255,255,255,0.45); line-height:1.65; }
+    .step-card { background:var(--bg-card); border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:28px 22px; }
+    .step-num { width:32px; height:32px; border-radius:8px; background:rgba(45,212,164,0.1); border:1px solid rgba(45,212,164,0.25); color:var(--accent); font-weight:900; font-size:14px; display:flex; align-items:center; justify-content:center; margin-bottom:18px; }
+    .step-icon { display:none; }
+    .step-title { font-weight:700; font-size:15px; margin-bottom:7px; color:#fff; }
+    .step-desc { font-size:13px; color:rgba(255,255,255,0.42); line-height:1.7; }
 
     /* ── Features ── */
     .feat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-    .feat-card { background:var(--bg-card); border:1px solid rgba(255,255,255,0.07); border-radius:16px; padding:20px 18px; transition:border-color 0.2s; }
-    .feat-card:hover { border-color:rgba(45,212,164,0.28); }
-    .feat-icon { font-size:26px; margin-bottom:8px; display:block; }
-    .feat-title { font-weight:800; font-size:14px; margin-bottom:4px; }
-    .feat-desc { font-size:12px; color:rgba(255,255,255,0.42); line-height:1.65; }
-    .feat-soon { display:inline-block; font-size:9px; font-weight:700; background:rgba(168,85,247,0.18); color:#c084fc; border:1px solid rgba(168,85,247,0.28); padding:2px 8px; border-radius:999px; margin-top:6px; text-transform:uppercase; letter-spacing:.5px; }
+    .feat-card { background:var(--bg-card); border:1px solid rgba(255,255,255,0.07); border-top:2px solid rgba(45,212,164,0.3); border-radius:12px; padding:22px 20px; transition:border-color 0.2s; }
+    .feat-card:hover { border-color:rgba(45,212,164,0.4); border-top-color:var(--accent); }
+    .feat-icon { display:none; }
+    .feat-cat { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:rgba(45,212,164,0.6); margin-bottom:8px; }
+    .feat-title { font-weight:700; font-size:14px; margin-bottom:5px; color:#fff; }
+    .feat-desc { font-size:12px; color:rgba(255,255,255,0.4); line-height:1.7; }
+    .feat-soon { display:inline-block; font-size:9px; font-weight:700; background:rgba(168,85,247,0.12); color:#a78bfa; border:1px solid rgba(168,85,247,0.22); padding:2px 8px; border-radius:4px; margin-top:8px; text-transform:uppercase; letter-spacing:.6px; }
 
     /* ── Email capture ── */
-    .lp-email-wrap { background:linear-gradient(160deg,#0c1f18 0%,#0f2b22 100%); border-top:1px solid rgba(255,255,255,0.07); border-bottom:1px solid rgba(255,255,255,0.07); }
-    .lp-email-inner { max-width:520px; margin:0 auto; text-align:center; padding:68px 24px; }
+    .lp-email-wrap { background:rgba(255,255,255,0.02); border-top:1px solid rgba(255,255,255,0.07); border-bottom:1px solid rgba(255,255,255,0.07); }
+    .lp-email-inner { max-width:480px; margin:0 auto; text-align:center; padding:64px 24px; }
     .lp-email-inner h2 { font-size:clamp(22px,3.2vw,30px); font-weight:900; margin-bottom:10px; }
-    .lp-email-inner p { color:rgba(255,255,255,0.5); font-size:15px; margin-bottom:28px; line-height:1.7; }
-    .email-row { display:flex; gap:10px; max-width:400px; margin:0 auto; }
-    .email-input { flex:1; background:rgba(255,255,255,0.07); border:1.5px solid rgba(255,255,255,0.14); border-radius:14px; padding:13px 16px; color:#fff; font-size:15px; outline:none; transition:border-color 0.2s; min-width:0; -webkit-user-select:text; user-select:text; }
-    .email-input::placeholder { color:rgba(255,255,255,0.32); }
+    .lp-email-inner p { color:rgba(255,255,255,0.45); font-size:15px; margin-bottom:28px; line-height:1.75; }
+    .email-row { display:flex; gap:8px; max-width:400px; margin:0 auto; }
+    .email-input { flex:1; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:13px 16px; color:#fff; font-size:15px; outline:none; transition:border-color 0.2s; min-width:0; -webkit-user-select:text; user-select:text; }
+    .email-input::placeholder { color:rgba(255,255,255,0.28); }
     .email-input:focus { border-color:var(--accent); }
-    .btn-notify { background:var(--accent); color:#0a2018; font-weight:800; font-size:14px; padding:13px 20px; border-radius:14px; border:none; cursor:pointer; white-space:nowrap; transition:opacity 0.15s; }
+    .btn-notify { background:var(--accent); color:#0a2018; font-weight:700; font-size:14px; padding:13px 20px; border-radius:8px; border:none; cursor:pointer; white-space:nowrap; transition:opacity 0.15s; }
     .btn-notify:hover { opacity:0.88; }
-    #email-success { color:var(--accent); font-weight:700; font-size:15px; display:none; margin-top:18px; }
+    #email-success { color:var(--accent); font-weight:600; font-size:15px; display:none; margin-top:18px; }
 
     /* ── Footer ── */
     .lp-footer { padding:28px 24px; text-align:center; color:rgba(255,255,255,0.22); font-size:13px; border-top:1px solid rgba(255,255,255,0.06); }
@@ -282,18 +286,18 @@
 
   <nav class="lp-nav">
     <a class="lp-logo" href="#"><span class="lp-logo-icon">🌍</span><span>LingoSwipe</span></a>
-    <button class="btn-demo-nav" onclick="showDemo()">📱 Try Demo</button>
+    <button class="btn-demo-nav" onclick="showDemo()">Try Demo</button>
   </nav>
 
   <!-- Hero -->
   <section class="lp-hero">
     <div class="lp-hero-text">
-      <div class="lp-badge">✨ Open prototype · v0.1</div>
+      <div class="lp-badge">Open prototype · v0.1</div>
       <h1>Learn a language<br><em>by scrolling.</em><br>No lessons. No pressure.</h1>
       <p class="lp-hero-sub">Swipe through funny sentences in your target language. Tap to flip and reveal the translation. That's it — no guilt, no streak-shaming, no daily obligations.</p>
       <div class="lp-ctas">
-        <button class="btn-primary" onclick="showDemo()">📱 Try the Demo</button>
-        <button class="btn-secondary" onclick="document.getElementById('email-section').scrollIntoView({behavior:'smooth'})">🔔 Notify me at launch</button>
+        <button class="btn-primary" onclick="showDemo()">Try the Demo</button>
+        <button class="btn-secondary" onclick="document.getElementById('email-section').scrollIntoView({behavior:'smooth'})">Get notified at launch</button>
       </div>
     </div>
     <div class="lp-phone-wrap">
@@ -326,29 +330,29 @@
 
   <!-- Why LingoSwipe -->
   <section class="lp-section">
-    <div class="lp-section-tag">💡 Why LingoSwipe</div>
+    <div class="lp-section-tag">Why LingoSwipe</div>
     <h2>An app that doesn't<br><em>guilt-trip you</em></h2>
     <div class="comp-grid">
       <div class="comp-card comp-yes">
-        <div class="comp-head"><span class="comp-head-yes">🌍</span> LingoSwipe ✅</div>
+        <div class="comp-head"><span class="comp-dot comp-dot-yes"></span><span class="comp-head-yes">LingoSwipe</span></div>
         <div class="comp-list">
-          <div class="comp-row"><span class="ci-yes">✓</span> Scroll for fun — like TikTok</div>
+          <div class="comp-row"><span class="ci-yes">✓</span> Scroll for fun, like TikTok</div>
           <div class="comp-row"><span class="ci-yes">✓</span> Funny AI-generated sentences</div>
           <div class="comp-row"><span class="ci-yes">✓</span> No registration, no account</div>
-          <div class="comp-row"><span class="ci-yes">✓</span> Zero streak-shaming</div>
-          <div class="comp-row"><span class="ci-yes">✓</span> Home screen widget — passive learning</div>
+          <div class="comp-row"><span class="ci-yes">✓</span> No streak-shaming</div>
+          <div class="comp-row"><span class="ci-yes">✓</span> Home screen widget — zero effort</div>
           <div class="comp-row"><span class="ci-yes">✓</span> 2 minutes of joy, then back to life</div>
         </div>
       </div>
       <div class="comp-card comp-no">
-        <div class="comp-head"><span class="comp-head-no">🦉</span> Duolingo / Anki ❌</div>
+        <div class="comp-head"><span class="comp-dot comp-dot-no"></span><span class="comp-head-no">Duolingo / Anki</span></div>
         <div class="comp-list">
-          <div class="comp-row"><span class="ci-no">✗</span> Feel guilty when you skip a day</div>
-          <div class="comp-row"><span class="ci-no">✗</span> Dry, static vocabulary lists</div>
-          <div class="comp-row"><span class="ci-no">✗</span> Requires account &amp; setup</div>
-          <div class="comp-row"><span class="ci-no">✗</span> Streak-shaming &amp; red screens</div>
-          <div class="comp-row"><span class="ci-no">✗</span> Must open the app every single day</div>
-          <div class="comp-row"><span class="ci-no">✗</span> Feels like homework</div>
+          <div class="comp-row"><span class="ci-no">–</span> Feel guilty when you skip a day</div>
+          <div class="comp-row"><span class="ci-no">–</span> Dry, static vocabulary lists</div>
+          <div class="comp-row"><span class="ci-no">–</span> Requires account &amp; setup</div>
+          <div class="comp-row"><span class="ci-no">–</span> Streak-shaming &amp; red screens</div>
+          <div class="comp-row"><span class="ci-no">–</span> Must open the app every day</div>
+          <div class="comp-row"><span class="ci-no">–</span> Feels like homework</div>
         </div>
       </div>
     </div>
@@ -358,24 +362,21 @@
 
   <!-- How it works -->
   <section class="lp-section">
-    <div class="lp-section-tag">⚡ How it works</div>
+    <div class="lp-section-tag">How it works</div>
     <h2>Three steps. <em>That's it.</em></h2>
     <div class="steps-grid">
       <div class="step-card">
         <div class="step-num">1</div>
-        <span class="step-icon">📱</span>
         <div class="step-title">Open the app</div>
         <div class="step-desc">No login, no setup. Pick your language pair and you're in. English, Polish, and French to start.</div>
       </div>
       <div class="step-card">
         <div class="step-num">2</div>
-        <span class="step-icon">👆</span>
         <div class="step-title">Swipe &amp; tap</div>
         <div class="step-desc">Swipe up for the next card. Tap anywhere to flip and see the translation. Repeat as long as you feel like it.</div>
       </div>
       <div class="step-card">
         <div class="step-num">3</div>
-        <span class="step-icon">🚶</span>
         <div class="step-title">Go back to your life</div>
         <div class="step-desc">No lesson to finish, no streak to protect. Close whenever. Language absorbs without forcing.</div>
       </div>
@@ -386,40 +387,40 @@
 
   <!-- Features -->
   <section class="lp-section">
-    <div class="lp-section-tag">🚀 What's inside</div>
+    <div class="lp-section-tag">What's inside</div>
     <h2>Everything you need.<br><em>Nothing you don't.</em></h2>
     <div class="feat-grid">
       <div class="feat-card">
-        <span class="feat-icon">😂</span>
+        <div class="feat-cat">Deck</div>
         <div class="feat-title">Funny sentences</div>
         <div class="feat-desc">50+ humorous quotes that are actually fun to read — not "the cat is on the mat".</div>
       </div>
       <div class="feat-card">
-        <span class="feat-icon">📚</span>
+        <div class="feat-cat">Deck</div>
         <div class="feat-title">Basic phrases</div>
-        <div class="feat-desc">30 real-world starter sentences: greetings, travel, café, emergencies — things you actually use.</div>
+        <div class="feat-desc">30 real-world starter sentences — greetings, travel, café, emergencies. Things you actually use.</div>
       </div>
       <div class="feat-card">
-        <span class="feat-icon">🇬🇧🇵🇱🇫🇷</span>
-        <div class="feat-title">3 languages</div>
-        <div class="feat-desc">English, Polish, French — swap in any direction. Change pairs anytime from the menu.</div>
+        <div class="feat-cat">Language</div>
+        <div class="feat-title">EN · PL · FR</div>
+        <div class="feat-desc">English, Polish, French in any direction. Swap language pairs anytime from the menu.</div>
       </div>
       <div class="feat-card">
-        <span class="feat-icon">🎯</span>
+        <div class="feat-cat">Filter</div>
         <div class="feat-title">A1 – B2 levels</div>
         <div class="feat-desc">Filter cards by difficulty so you always see content that matches where you are.</div>
       </div>
       <div class="feat-card">
-        <span class="feat-icon">🤖</span>
+        <div class="feat-cat">Coming soon</div>
         <div class="feat-title">AI Daily Deck</div>
-        <div class="feat-desc">Fresh AI-generated sentences every day, based on trending topics. A real reason to come back.</div>
-        <span class="feat-soon">Coming soon</span>
+        <div class="feat-desc">Fresh sentences every day, generated from trending topics. A real reason to come back.</div>
+        <span class="feat-soon">In development</span>
       </div>
       <div class="feat-card">
-        <span class="feat-icon">📱</span>
+        <div class="feat-cat">Coming soon</div>
         <div class="feat-title">Home screen widget</div>
-        <div class="feat-desc">See a new sentence without opening the app. Passive language exposure at zero effort.</div>
-        <span class="feat-soon">Coming soon</span>
+        <div class="feat-desc">See a new sentence without opening the app. Passive exposure at zero effort.</div>
+        <span class="feat-soon">In development</span>
       </div>
     </div>
   </section>
@@ -427,19 +428,19 @@
   <!-- Email capture -->
   <div id="email-section" class="lp-email-wrap">
     <div class="lp-email-inner">
-      <div class="lp-badge" style="margin-bottom:16px;">🔔 Early access</div>
+      <div class="lp-badge" style="margin-bottom:16px;">Early access</div>
       <h2>Be the first to know<br>when the app launches</h2>
-      <p>Drop your email and we'll ping you when LingoSwipe hits the app stores. No spam — one email, ever.</p>
-      <div class="email-row" id="email-form">
-        <input class="email-input" type="email" id="email-input" placeholder="you@example.com" />
-        <button class="btn-notify" onclick="handleEmailSubmit()">🔔 Notify me</button>
-      </div>
-      <p id="email-success">🎉 You're on the list! We'll reach out when it's ready.</p>
+      <p>Drop your email and we'll reach out when LingoSwipe hits the app stores. No spam — one email, ever.</p>
+      <form class="email-row" id="email-form" onsubmit="handleEmailSubmit(event)">
+        <input class="email-input" type="email" id="email-input" name="email" placeholder="you@example.com" required />
+        <button class="btn-notify" type="submit">Notify me</button>
+      </form>
+      <p id="email-success">You're on the list. We'll reach out when it's ready.</p>
     </div>
   </div>
 
   <footer class="lp-footer">
-    <p>🌍 LingoSwipe &nbsp;·&nbsp; Built with ☕ and vibe coding &nbsp;·&nbsp; v0.1 prototype</p>
+    <p>LingoSwipe &nbsp;·&nbsp; Side project &nbsp;·&nbsp; v0.1 prototype</p>
     <p style="margin-top:6px;"><a href="#" onclick="showDemo();return false;">Try the demo →</a> &nbsp;·&nbsp; <a href="https://github.com/RadRym/LingoSwipe" target="_blank">GitHub</a></p>
   </footer>
 
@@ -582,12 +583,31 @@ window.addEventListener('popstate', () => {
   if (location.hash === '#demo') showDemo(); else showLanding();
 });
 
-function handleEmailSubmit() {
+function handleEmailSubmit(e) {
+  e.preventDefault();
   const val = document.getElementById('email-input').value.trim();
-  if (!val || !val.includes('@')) { document.getElementById('email-input').focus(); return; }
-  document.getElementById('email-form').style.display = 'none';
-  document.getElementById('email-success').style.display = 'block';
-  try { localStorage.setItem('ls_notify_email', val); } catch(e) {}
+  if (!val) return;
+  const form = document.getElementById('email-form');
+  const btn  = form.querySelector('button');
+  btn.textContent = 'Sending…';
+  btn.disabled = true;
+  fetch('https://formspree.io/f/xrerdjjo', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({ email: val })
+  })
+  .then(r => r.json())
+  .then(data => {
+    form.style.display = 'none';
+    document.getElementById('email-success').style.display = 'block';
+    try { localStorage.setItem('ls_notify_email', val); } catch(e) {}
+  })
+  .catch(() => {
+    // Fallback: show success anyway, save locally
+    form.style.display = 'none';
+    document.getElementById('email-success').style.display = 'block';
+    try { localStorage.setItem('ls_notify_email', val); } catch(e) {}
+  });
 }
 
 // ─── CONFIG ───────────────────────────────────────────────────────────────────

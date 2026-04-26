@@ -760,9 +760,17 @@ document.getElementById('btn-menu').addEventListener('click', openDrawer);
 document.getElementById('btn-close-drawer').addEventListener('click', closeDrawer);
 drawerOverlay.addEventListener('click', closeDrawer);
 
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 function rebuildDeck() {
   const source = DECKS[activeDeck] || DECK;
-  filteredDeck = source.filter(c => activeFilter === 'all' || c.level === activeFilter);
+  filteredDeck = shuffle(source.filter(c => activeFilter === 'all' || c.level === activeFilter));
   idx = seen = streak = bestStreak = 0;
 }
 

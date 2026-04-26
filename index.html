@@ -117,6 +117,11 @@
       border:2px solid rgba(255,255,255,0.14); background:transparent;
       color:rgba(255,255,255,0.5); cursor:pointer; transition:all 0.15s; }
     .filter-btn.active { background:#2dd4a4; border-color:#2dd4a4; color:#0a2018; }
+    .deck-btn-ai { border-color:rgba(168,85,247,0.4); color:rgba(168,85,247,0.7); position:relative; }
+    .deck-btn-ai::after { content:'soon'; position:absolute; top:-7px; right:-4px;
+      font-size:8px; font-weight:800; background:#7c3aed; color:#fff; padding:1px 5px;
+      border-radius:999px; letter-spacing:0.3px; text-transform:uppercase; }
+    .deck-btn-ai.active { background:rgba(168,85,247,0.2); border-color:#a855f7; color:#d8b4fe; }
     .stat-row { display:flex; justify-content:space-between; padding:5px 0; }
     .stat-label { color:rgba(255,255,255,0.5); font-size:14px; }
     .stat-value { color:#fff; font-size:14px; font-weight:700; }
@@ -177,6 +182,15 @@
           <option value="pl" selected>🇵🇱 Polish</option>
           <option value="fr">🇫🇷 French</option>
         </select>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <p class="drawer-label">Deck</p>
+      <div class="filter-grid">
+        <button class="filter-btn deck-btn active" data-deck="funny">😂 Funny</button>
+        <button class="filter-btn deck-btn" data-deck="basic">📚 Basic</button>
+        <button class="filter-btn deck-btn deck-btn-ai" data-deck="random">🤖 AI</button>
       </div>
     </div>
 
@@ -455,8 +469,49 @@ const DECK = [
     emoji:"💇", mood:"Same", level:"B1" },
 ];
 
+// ─── BASIC SENTENCES DECK ─────────────────────────────────────────────────────
+const DECK_BASIC = [
+  { en:"Hello! How are you?",                    pl:"Cześć! Jak się masz?",                      fr:"Bonjour ! Comment vas-tu ?",                       emoji:"👋", mood:"Greeting",        level:"A1" },
+  { en:"My name is Anna.",                        pl:"Mam na imię Anna.",                         fr:"Je m'appelle Anna.",                               emoji:"🙋", mood:"Introduction",    level:"A1" },
+  { en:"Where are you from?",                     pl:"Skąd jesteś?",                              fr:"Tu viens d'où ?",                                  emoji:"🌍", mood:"Getting to Know", level:"A1" },
+  { en:"I don't understand.",                     pl:"Nie rozumiem.",                             fr:"Je ne comprends pas.",                             emoji:"🤷", mood:"Communication",   level:"A1" },
+  { en:"Can you speak more slowly, please?",      pl:"Czy możesz mówić wolniej?",                 fr:"Pouvez-vous parler plus lentement ?",              emoji:"🐌", mood:"Communication",   level:"A1" },
+  { en:"Where is the bathroom?",                  pl:"Gdzie jest toaleta?",                       fr:"Où sont les toilettes ?",                          emoji:"🚽", mood:"Travel",          level:"A1" },
+  { en:"How much does this cost?",                pl:"Ile to kosztuje?",                          fr:"Combien ça coûte ?",                               emoji:"💰", mood:"Shopping",        level:"A1" },
+  { en:"I would like a coffee, please.",          pl:"Poproszę kawę.",                            fr:"Un café, s'il vous plaît.",                        emoji:"☕", mood:"Café",            level:"A1" },
+  { en:"I am hungry.",                            pl:"Jestem głodny.",                            fr:"J'ai faim.",                                       emoji:"🍽️", mood:"Daily Life",      level:"A1" },
+  { en:"I am tired.",                             pl:"Jestem zmęczony.",                          fr:"Je suis fatigué.",                                 emoji:"😴", mood:"Daily Life",      level:"A1" },
+  { en:"Good morning!",                           pl:"Dzień dobry!",                              fr:"Bonjour !",                                        emoji:"🌅", mood:"Greeting",        level:"A1" },
+  { en:"Good night!",                             pl:"Dobranoc!",                                 fr:"Bonne nuit !",                                     emoji:"🌙", mood:"Greeting",        level:"A1" },
+  { en:"Thank you very much!",                    pl:"Dziękuję bardzo!",                          fr:"Merci beaucoup !",                                 emoji:"🙏", mood:"Politeness",      level:"A1" },
+  { en:"You're welcome!",                         pl:"Nie ma za co!",                             fr:"De rien !",                                        emoji:"😊", mood:"Politeness",      level:"A1" },
+  { en:"Excuse me.",                              pl:"Przepraszam.",                              fr:"Excusez-moi.",                                     emoji:"🙏", mood:"Politeness",      level:"A1" },
+  { en:"I am sorry.",                             pl:"Przykro mi.",                               fr:"Je suis désolé.",                                  emoji:"😔", mood:"Politeness",      level:"A1" },
+  { en:"I love you.",                             pl:"Kocham cię.",                               fr:"Je t'aime.",                                       emoji:"❤️", mood:"Feelings",        level:"A1" },
+  { en:"See you tomorrow!",                       pl:"Do jutra!",                                 fr:"À demain !",                                       emoji:"👋", mood:"Farewell",        level:"A1" },
+  { en:"Have a nice day!",                        pl:"Miłego dnia!",                              fr:"Bonne journée !",                                  emoji:"☀️", mood:"Farewell",        level:"A1" },
+  { en:"Can you help me?",                        pl:"Czy możesz mi pomóc?",                      fr:"Pouvez-vous m'aider ?",                            emoji:"🤝", mood:"Asking for Help", level:"A1" },
+  { en:"I don't know.",                           pl:"Nie wiem.",                                 fr:"Je ne sais pas.",                                  emoji:"🤔", mood:"Daily Life",      level:"A1" },
+  { en:"What time is it?",                        pl:"Która jest godzina?",                       fr:"Quelle heure est-il ?",                            emoji:"⏰", mood:"Daily Life",      level:"A1" },
+  { en:"I am a student.",                         pl:"Jestem studentem.",                         fr:"Je suis étudiant.",                                emoji:"📚", mood:"Introduction",    level:"A1" },
+  { en:"The weather is nice today.",              pl:"Dziś jest ładna pogoda.",                   fr:"Il fait beau aujourd'hui.",                        emoji:"🌤️", mood:"Small Talk",      level:"A2" },
+  { en:"I live in Warsaw.",                       pl:"Mieszkam w Warszawie.",                     fr:"J'habite à Varsovie.",                             emoji:"🏙️", mood:"Introduction",    level:"A1" },
+  { en:"Do you speak English?",                   pl:"Czy mówisz po angielsku?",                  fr:"Parlez-vous anglais ?",                            emoji:"🗣️", mood:"Communication",   level:"A1" },
+  { en:"I need a doctor.",                        pl:"Potrzebuję lekarza.",                       fr:"J'ai besoin d'un médecin.",                        emoji:"🏥", mood:"Emergency",       level:"A1" },
+  { en:"The train is late.",                      pl:"Pociąg się spóźnia.",                       fr:"Le train est en retard.",                          emoji:"🚂", mood:"Travel",          level:"A2" },
+  { en:"Can I have the menu, please?",            pl:"Czy mogę prosić o menu?",                   fr:"Je pourrais voir la carte, s'il vous plaît ?",     emoji:"🍴", mood:"Restaurant",      level:"A1" },
+  { en:"I would like to pay.",                    pl:"Chciałbym zapłacić.",                       fr:"Je voudrais payer.",                               emoji:"💳", mood:"Restaurant",      level:"A2" },
+];
+
+const DECKS = {
+  funny:  DECK,
+  basic:  DECK_BASIC,
+  random: [], // AI-generated — coming soon
+};
+
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let activePair   = 'en-pl';
+let activeDeck   = 'funny';
 let activeFilter = 'all';
 let filteredDeck = [...DECK];
 let idx = 0, seen = 0, streak = 0, bestStreak = 0;
@@ -706,7 +761,8 @@ document.getElementById('btn-close-drawer').addEventListener('click', closeDrawe
 drawerOverlay.addEventListener('click', closeDrawer);
 
 function rebuildDeck() {
-  filteredDeck = DECK.filter(c => activeFilter === 'all' || c.level === activeFilter);
+  const source = DECKS[activeDeck] || DECK;
+  filteredDeck = source.filter(c => activeFilter === 'all' || c.level === activeFilter);
   idx = seen = streak = bestStreak = 0;
 }
 
@@ -733,6 +789,41 @@ document.getElementById('btn-swap').addEventListener('click', () => {
   btn.style.transform = 'rotate(180deg)';
   setTimeout(() => { btn.style.transform = ''; }, 350);
   applyPairFromSelects();
+});
+
+// Deck selector
+document.querySelectorAll('.deck-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const deck = btn.dataset.deck;
+    if (deck === 'random') {
+      // Show a small toast — logic coming later
+      let toast = document.getElementById('ai-toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'ai-toast';
+        toast.style.cssText = `position:fixed;bottom:calc(var(--safe-bottom)+24px);left:50%;
+          transform:translateX(-50%);background:#7c3aed;color:#fff;font-size:13px;
+          font-weight:700;padding:10px 20px;border-radius:999px;z-index:200;
+          box-shadow:0 4px 20px rgba(124,58,237,0.5);pointer-events:none;
+          animation:toastIn 0.3s cubic-bezier(0.34,1.56,0.64,1);`;
+        document.body.appendChild(toast);
+        const style = document.createElement('style');
+        style.textContent = `@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}`;
+        document.head.appendChild(style);
+      }
+      toast.textContent = '🤖 AI deck coming soon!';
+      toast.style.display = 'block';
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => { toast.style.display = 'none'; }, 2200);
+      return;
+    }
+    document.querySelectorAll('.deck-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeDeck = deck;
+    activeFilter = 'all';
+    document.querySelectorAll('.diff-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
+    rebuildDeck(); closeDrawer(); renderStack();
+  });
 });
 
 // Difficulty

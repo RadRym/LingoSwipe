@@ -128,6 +128,23 @@
     .btn-notify:hover { opacity:0.88; }
     #email-success { color:var(--accent); font-weight:600; font-size:15px; display:none; margin-top:18px; }
 
+    /* ── Cookie notice ── */
+    #cookie-notice { position:fixed; bottom:0; left:0; right:0; z-index:999;
+      background:#0f2b22; border-top:1px solid rgba(45,212,164,0.2);
+      padding:14px 20px; display:flex; align-items:center; gap:14px;
+      flex-wrap:wrap; justify-content:space-between;
+      box-shadow:0 -4px 24px rgba(0,0,0,0.4);
+      transform:translateY(0); transition:transform 0.3s ease; }
+    #cookie-notice.hidden { transform:translateY(110%); pointer-events:none; }
+    .cookie-text { font-size:13px; color:rgba(255,255,255,0.6); line-height:1.6; flex:1; min-width:200px; }
+    .cookie-text strong { color:rgba(255,255,255,0.85); }
+    .cookie-text a { color:var(--accent); text-decoration:none; }
+    .cookie-text a:hover { text-decoration:underline; }
+    .btn-cookie-ok { background:var(--accent); color:#0a2018; font-weight:700;
+      font-size:13px; padding:9px 20px; border-radius:8px; border:none;
+      cursor:pointer; white-space:nowrap; flex-shrink:0; transition:opacity 0.15s; }
+    .btn-cookie-ok:hover { opacity:0.88; }
+
     /* ── Footer ── */
     .lp-footer { padding:28px 24px; text-align:center; color:rgba(255,255,255,0.22); font-size:13px; border-top:1px solid rgba(255,255,255,0.06); }
     .lp-footer a { color:var(--accent); text-decoration:none; }
@@ -567,6 +584,18 @@
 
 </div><!-- /page-demo -->
 
+
+<!-- ════════════════════════════════════════════════════════
+     COOKIE / DATA NOTICE
+════════════════════════════════════════════════════════ -->
+<div id="cookie-notice" class="hidden">
+  <p class="cookie-text">
+    <strong>This site uses localStorage</strong> — your browser stores your selected language pair,
+    deck preference, and how many times you've seen each card.
+    Nothing is sent to any server. No account, no tracking, no ads.
+  </p>
+  <button class="btn-cookie-ok" id="btn-cookie-ok">Got it</button>
+</div>
 
 <script>
 // ─── PAGE ROUTING ─────────────────────────────────────────────────────────────
@@ -1471,6 +1500,19 @@ document.getElementById('btn-restart').addEventListener('click', () => {
   completion.classList.remove('visible');
   renderStack();
 });
+
+// ─── COOKIE NOTICE ────────────────────────────────────────────────────────────
+(function () {
+  const notice = document.getElementById('cookie-notice');
+  if (!localStorage.getItem('ls_cookie_ok')) {
+    // Small delay so it slides in after page render
+    setTimeout(() => notice.classList.remove('hidden'), 600);
+  }
+  document.getElementById('btn-cookie-ok').addEventListener('click', () => {
+    notice.classList.add('hidden');
+    try { localStorage.setItem('ls_cookie_ok', '1'); } catch(e) {}
+  });
+})();
 
 // ─── RESTORE SAVED PREFERENCES ────────────────────────────────────────────────
 (function () {

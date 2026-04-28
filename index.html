@@ -1157,9 +1157,17 @@ function shuffle(arr) {
 function rebuildDeck() {
   const source   = DECKS[activeDeck] || DECK;
   const filtered = source.filter(c => activeFilter === 'all' || c.level === activeFilter);
-  filteredDeck   = shuffle(filtered);
+
+  // Smart ordering: never-seen cards (random) first, then seen cards fewest-views first
+  const withViews   = filtered.map(c => ({ card: c, views: S.getViews(c.en, activePair) }));
+  const unseenCards = withViews.filter(x => x.views === 0).map(x => x.card);
+  const seenCards   = withViews.filter(x => x.views  > 0)
+                               .sort((a, b) => a.views - b.views)
+                               .map(x => x.card);
+  filteredDeck = [...shuffle(unseenCards), ...seenCards];
+
   idx = seen = streak = bestStreak = 0;
-  S.savePrefs(); // persist selected pair / deck / filter
+  S.savePrefs();
 }
 
 // ─── LANGUAGE PAIR ────────────────────────────────────────────────────────────

@@ -736,6 +736,21 @@ Object.keys(LANG).forEach(f => Object.keys(LANG).forEach(t => {
 }));
 const LEVEL_COLOR = { A1:'#22c55e', A2:'#3b82f6', B1:'#f59e0b', B2:'#ef4444' };
 
+// ─── AZURE NEURAL TTS CONFIG ──────────────────────────────────────────────────
+// 1. portal.azure.com → Create resource → "Speech" → F0 free tier (500k chars/mo)
+// 2. After deploy: Keys and Endpoint → copy Key 1 + Location/Region
+const AZURE_KEY    = '';          // ← paste your Key 1 here
+const AZURE_REGION = 'westeurope'; // ← e.g. 'westeurope', 'eastus', 'northeurope'
+const AZURE_VOICES = {
+  'en-GB': 'en-GB-SoniaNeural',
+  'pl-PL': 'pl-PL-ZofiaNeural',
+  'fr-FR': 'fr-FR-DeniseNeural',
+  'de-DE': 'de-DE-KatjaNeural',
+  'es-ES': 'es-ES-ElviraNeural',
+  'it-IT': 'it-IT-ElsaNeural',
+  'nl-NL': 'nl-NL-ColetteNeural',
+};
+
 // ─── DECK ─────────────────────────────────────────────────────────────────────
 const DECK = [
   { en:"I'm not lazy, I'm just on energy saving mode.",
@@ -1282,43 +1297,91 @@ function phonetic(text, lang) {
   return out === text.toLowerCase() ? null : out; // null = nothing changed, don't show
 }
 
-// ─── AUTO-SPEAK / AUTO-ADVANCE ────────────────────────────────────────────────
-function speakCard() {
-  if (!window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-  const card = filteredDeck[idx];
-  if (!card) return;
-  const pair = PAIRS[activePair];
-  const utt  = new SpeechSynthesisUtterance(card[pair.from]);
-  utt.lang   = LANG[pair.from].bcp;
-  utt.rate   = 0.88;
-  if (autoAdvance) utt.onend = () => { autoTimer = setTimeout(swipeUp, 1500); };
+// ─── TTS ENGINE (Azure Neural → browser fallback) ────────────────────────────
+let _currentAudio = null;
+const _audioCache = new Map(); // in-session cache: avoids re-fetching same sentence
+
+function _stopAudio() {
+  if (_currentAudio) { _currentAudio.pause(); _currentAudio.src = ''; _currentAudio = null; }
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+}
+
+function _escXml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+          .replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+}
+
+async function _fetchAzure(text, bcp) {
+  const cacheKey = bcp + '|' + text;
+  if (_audioCache.has(cacheKey)) return _audioCache.get(cacheKey);
+
+  const voice = AZURE_VOICES[bcp] || 'en-GB-SoniaNeural';
+  const ssml  = `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='${bcp}'>` +
+                `<voice name='${voice}'><prosody rate='-10%'>${_escXml(text)}</prosody></voice></speak>`;
+
+  const res = await fetch(
+    `https://${AZURE_REGION}.tts.speech.microsoft.com/cognitiveservices/v1`,
+    { method: 'POST',
+      headers: {
+        'Ocp-Apim-Subscription-Key': AZURE_KEY,
+        'Content-Type': 'application/ssml+xml',
+        'X-Microsoft-OutputFormat': 'audio-16khz-128kbitrate-mono-mp3',
+      },
+      body: ssml }
+  );
+  if (!res.ok) throw new Error(`Azure ${res.status}`);
+  const url = URL.createObjectURL(await res.blob());
+  _audioCache.set(cacheKey, url);
+  return url;
+}
+
+// speak(text, bcp, btn?, onDone?)
+// Uses Azure if key is set, falls back to browser silently on error.
+async function speak(text, bcp, btn, onDone) {
+  _stopAudio();
+  if (btn) btn.classList.add('speaking');
+  const done = () => { if (btn) btn.classList.remove('speaking'); if (onDone) onDone(); };
+
+  if (AZURE_KEY) {
+    try {
+      const url    = await _fetchAzure(text, bcp);
+      _currentAudio          = new Audio(url);
+      _currentAudio.onended  = done;
+      _currentAudio.onerror  = done;
+      _currentAudio.play();
+      return;
+    } catch (e) { console.warn('Azure TTS:', e); }
+  }
+  // Browser fallback
+  if (!window.speechSynthesis) return done();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang  = bcp; utt.rate = 0.88;
+  utt.onend = utt.onerror = done;
   window.speechSynthesis.speak(utt);
 }
 
+// ─── AUTO-SPEAK / AUTO-ADVANCE ────────────────────────────────────────────────
+function speakCard() {
+  const card = filteredDeck[idx];
+  if (!card) return;
+  const pair = PAIRS[activePair];
+  speak(card[pair.from], LANG[pair.from].bcp, null,
+        autoAdvance ? () => { autoTimer = setTimeout(swipeUp, 1500); } : null);
+}
+
 function onCardReady() {
-  if (autoSpeak) {
-    speakCard(); // speakCard triggers autoAdvance via onend if both are on
-  } else if (autoAdvance) {
-    autoTimer = setTimeout(swipeUp, 4000); // fixed 4 s when speaker is off
-  }
+  if (autoSpeak)        speakCard();
+  else if (autoAdvance) autoTimer = setTimeout(swipeUp, 4000);
 }
 
 function cancelAuto() {
   clearTimeout(autoTimer); autoTimer = null;
-  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  _stopAudio();
 }
 
-// ─── TEXT-TO-SPEECH ───────────────────────────────────────────────────────────
+// ─── SPEAK BUTTON (manual tap on card) ───────────────────────────────────────
 function speakBtn(btn) {
-  if (!window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-  const utt  = new SpeechSynthesisUtterance(btn.dataset.text);
-  utt.lang   = btn.dataset.bcp;
-  utt.rate   = 0.88;
-  btn.classList.add('speaking');
-  utt.onend = utt.onerror = () => btn.classList.remove('speaking');
-  window.speechSynthesis.speak(utt);
+  speak(btn.dataset.text, btn.dataset.bcp, btn, null);
 }
 function hEsc(s) {
   return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');

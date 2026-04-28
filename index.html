@@ -569,7 +569,7 @@ function showDemo() {
   document.getElementById('page-demo').classList.add('visible');
   document.body.classList.add('demo-open');
   history.pushState(null, '', '#demo');
-  if (!appReady) { renderStack(); appReady = true; }
+  if (!appReady) { rebuildDeck(); renderStack(); appReady = true; }
 }
 
 function showLanding() {
@@ -874,6 +874,26 @@ const DECKS = {
   random: [],
 };
 
+// ─── STORAGE (localStorage) ───────────────────────────────────────────────────
+const S = {
+  _get(k, def) { try { return JSON.parse(localStorage.getItem(k)) ?? def; } catch { return def; } },
+  _set(k, v)   { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+
+  // Card views: { 'card_key': { 'en-pl': 3, 'fr-en': 1, … } }
+  views()                { return this._get('ls_views', {}); },
+  getViews(cardEn, pair) { const k = cardEn.slice(0, 40); return (this.views()[k] || {})[pair] || 0; },
+  addView(cardEn, pair)  {
+    const v = this.views(), k = cardEn.slice(0, 40);
+    if (!v[k]) v[k] = {};
+    v[k][pair] = (v[k][pair] || 0) + 1;
+    this._set('ls_views', v);
+  },
+
+  // Preferences: last used pair / deck / filter
+  prefs()     { return this._get('ls_prefs', { pair: 'en-pl', deck: 'funny', filter: 'all' }); },
+  savePrefs() { this._set('ls_prefs', { pair: activePair, deck: activeDeck, filter: activeFilter }); },
+};
+
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let activePair   = 'en-pl';
 let activeDeck   = 'funny';
@@ -1029,12 +1049,14 @@ function flip() {
 function swipeUp() {
   const inner = topInner();
   if (!inner) return;
+  const card = filteredDeck[idx];
   const flipPart = flipped ? ' rotateY(180deg)' : '';
   inner.style.transition = 'transform 0.38s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.38s';
   inner.style.transform  = `translateY(-115vh) rotateX(15deg) scale(0.92)${flipPart}`;
   inner.style.opacity    = '0';
   seen++; streak++; bestStreak = Math.max(bestStreak, streak);
   streakEl.textContent = streak;
+  if (card) S.addView(card.en, activePair); // track this card view per pair
   setTimeout(() => {
     idx++;
     if (idx >= filteredDeck.length) showCompletion();
@@ -1133,9 +1155,11 @@ function shuffle(arr) {
 }
 
 function rebuildDeck() {
-  const source = DECKS[activeDeck] || DECK;
-  filteredDeck = shuffle(source.filter(c => activeFilter === 'all' || c.level === activeFilter));
+  const source   = DECKS[activeDeck] || DECK;
+  const filtered = source.filter(c => activeFilter === 'all' || c.level === activeFilter);
+  filteredDeck   = shuffle(filtered);
   idx = seen = streak = bestStreak = 0;
+  S.savePrefs(); // persist selected pair / deck / filter
 }
 
 // ─── LANGUAGE PAIR ────────────────────────────────────────────────────────────
@@ -1226,6 +1250,33 @@ document.getElementById('btn-restart').addEventListener('click', () => {
   completion.classList.remove('visible');
   renderStack();
 });
+
+// ─── RESTORE SAVED PREFERENCES ────────────────────────────────────────────────
+(function () {
+  const p = S.prefs();
+
+  // Language pair
+  if (PAIRS[p.pair]) {
+    activePair    = p.pair;
+    const [f, t]  = p.pair.split('-');
+    selFrom.value = f;
+    selTo.value   = t;
+  }
+
+  // Deck
+  if (p.deck && DECKS[p.deck] !== undefined) {
+    activeDeck = p.deck;
+    document.querySelectorAll('.deck-btn').forEach(b =>
+      b.classList.toggle('active', b.dataset.deck === activeDeck));
+  }
+
+  // Difficulty filter
+  if (p.filter) {
+    activeFilter = p.filter;
+    document.querySelectorAll('.diff-btn').forEach(b =>
+      b.classList.toggle('active', b.dataset.filter === activeFilter));
+  }
+})();
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 // App is initialized lazily in showDemo() — not here

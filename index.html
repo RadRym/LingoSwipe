@@ -600,6 +600,20 @@
     <button class="drawer-btn" id="btn-stats-drawer" style="background:rgba(45,212,164,0.08);color:#2dd4a4;border:1px solid rgba(45,212,164,0.18);margin-top:14px;">📊 View Stats</button>
     <button class="drawer-btn drawer-btn-reset" id="btn-reset-drawer">🔄 Reset session</button>
 
+    <div class="drawer-section" style="margin-top:8px;">
+      <p class="drawer-label">Auto options</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+          <span style="font-size:14px;color:rgba(255,255,255,0.7);">🔊 Auto-speak card</span>
+          <input type="checkbox" id="toggle-autospeak" style="width:18px;height:18px;accent-color:#2dd4a4;cursor:pointer;">
+        </label>
+        <label style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
+          <span style="font-size:14px;color:rgba(255,255,255,0.7);">⏭ Auto-advance cards</span>
+          <input type="checkbox" id="toggle-autoadvance" style="width:18px;height:18px;accent-color:#2dd4a4;cursor:pointer;">
+        </label>
+      </div>
+    </div>
+
     <div class="drawer-shortcuts">
       <strong style="color:rgba(255,255,255,0.45);">Gestures</strong><br>
       👆 Tap — reveal / hide translation<br>
@@ -1189,9 +1203,9 @@ const S = {
     this._set('ls_views', v);
   },
 
-  // Preferences: last used pair / deck / filter
-  prefs()     { return this._get('ls_prefs', { pair: 'en-pl', deck: 'funny', filter: 'all' }); },
-  savePrefs() { this._set('ls_prefs', { pair: activePair, deck: activeDeck, filter: activeFilter }); },
+  // Preferences: last used pair / deck / filter + auto toggles
+  prefs()     { return this._get('ls_prefs', { pair:'en-pl', deck:'funny', filter:'all', autoSpeak:false, autoAdvance:false }); },
+  savePrefs() { this._set('ls_prefs', { pair:activePair, deck:activeDeck, filter:activeFilter, autoSpeak, autoAdvance }); },
 };
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
@@ -1203,6 +1217,9 @@ let idx = 0, seen = 0, streak = 0, bestStreak = 0;
 let flipped  = false;
 let dragging = false, startX = 0, startY = 0, dragY = 0;
 const SWIPE_THRESHOLD = 70;
+let autoSpeak   = false;
+let autoAdvance = false;
+let autoTimer   = null;
 
 // ─── REFS ─────────────────────────────────────────────────────────────────────
 const stackEl    = document.getElementById('card-stack');
@@ -1263,6 +1280,33 @@ function phonetic(text, lang) {
   let out = text.toLowerCase();
   for (const [pat, rep] of rules) out = out.replace(pat, rep);
   return out === text.toLowerCase() ? null : out; // null = nothing changed, don't show
+}
+
+// ─── AUTO-SPEAK / AUTO-ADVANCE ────────────────────────────────────────────────
+function speakCard() {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const card = filteredDeck[idx];
+  if (!card) return;
+  const pair = PAIRS[activePair];
+  const utt  = new SpeechSynthesisUtterance(card[pair.from]);
+  utt.lang   = LANG[pair.from].bcp;
+  utt.rate   = 0.88;
+  if (autoAdvance) utt.onend = () => { autoTimer = setTimeout(swipeUp, 1500); };
+  window.speechSynthesis.speak(utt);
+}
+
+function onCardReady() {
+  if (autoSpeak) {
+    speakCard(); // speakCard triggers autoAdvance via onend if both are on
+  } else if (autoAdvance) {
+    autoTimer = setTimeout(swipeUp, 4000); // fixed 4 s when speaker is off
+  }
+}
+
+function cancelAuto() {
+  clearTimeout(autoTimer); autoTimer = null;
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
 }
 
 // ─── TEXT-TO-SPEECH ───────────────────────────────────────────────────────────
@@ -1356,6 +1400,7 @@ function renderStack() {
   flipped = false;
   updateMeta();
   attachEvents();
+  onCardReady();
 }
 
 function advanceStack() {
@@ -1377,6 +1422,7 @@ function advanceStack() {
   flipped = false;
   updateMeta();
   attachEvents();
+  onCardReady();
 }
 
 function updateMeta() {
@@ -1422,6 +1468,7 @@ function flip() {
 
 // ─── SWIPE UP (next card) ─────────────────────────────────────────────────────
 function swipeUp() {
+  cancelAuto();
   const inner = topInner();
   if (!inner) return;
   const card = filteredDeck[idx];
@@ -1726,6 +1773,18 @@ document.getElementById('btn-restart').addEventListener('click', () => {
   });
 })();
 
+// ─── AUTO TOGGLES ─────────────────────────────────────────────────────────────
+document.getElementById('toggle-autospeak').addEventListener('change', e => {
+  autoSpeak = e.target.checked;
+  if (!autoSpeak) cancelAuto();
+  S.savePrefs();
+});
+document.getElementById('toggle-autoadvance').addEventListener('change', e => {
+  autoAdvance = e.target.checked;
+  if (!autoAdvance) cancelAuto();
+  S.savePrefs();
+});
+
 // ─── RESTORE SAVED PREFERENCES ────────────────────────────────────────────────
 (function () {
   const p = S.prefs();
@@ -1751,6 +1810,11 @@ document.getElementById('btn-restart').addEventListener('click', () => {
     document.querySelectorAll('.diff-btn').forEach(b =>
       b.classList.toggle('active', b.dataset.filter === activeFilter));
   }
+  // Auto toggles
+  autoSpeak   = !!p.autoSpeak;
+  autoAdvance = !!p.autoAdvance;
+  document.getElementById('toggle-autospeak').checked   = autoSpeak;
+  document.getElementById('toggle-autoadvance').checked = autoAdvance;
 })();
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────

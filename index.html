@@ -286,6 +286,43 @@
     .drawer-shortcuts { padding:16px 20px; color:rgba(255,255,255,0.28);
       font-size:12px; line-height:1.8; margin-top:auto; }
 
+    /* ── Stats panel ── */
+    #stats-panel { position:fixed; inset:0; z-index:650;
+      background:linear-gradient(160deg,#070e0a 0%,#0a1e16 100%);
+      display:none; flex-direction:column; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+    #stats-panel.visible { display:flex; animation:popIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275); }
+    .stats-header { display:flex; align-items:center; justify-content:space-between;
+      padding:calc(var(--safe-top) + 18px) 20px 18px;
+      border-bottom:1px solid rgba(255,255,255,0.08); flex-shrink:0; }
+    .stats-title { font-size:20px; font-weight:800; color:#fff; }
+    .stats-body { padding:24px 20px; max-width:480px; margin:0 auto; width:100%; }
+    .stats-summary { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:24px; }
+    .stat-tile { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+      border-radius:14px; padding:18px 16px; }
+    .stat-tile-val { font-size:30px; font-weight:900; color:var(--accent); line-height:1; margin-bottom:4px; }
+    .stat-tile-label { font-size:11px; color:rgba(255,255,255,0.4); font-weight:600;
+      text-transform:uppercase; letter-spacing:0.8px; }
+    .stats-fav { background:rgba(45,212,164,0.06); border:1px solid rgba(45,212,164,0.2);
+      border-radius:14px; padding:18px 20px; margin-bottom:24px;
+      display:flex; align-items:center; gap:14px; }
+    .stats-fav-flag { font-size:28px; line-height:1; }
+    .stats-fav-info { flex:1; min-width:0; }
+    .stats-fav-label { font-size:10px; font-weight:700; text-transform:uppercase;
+      letter-spacing:1px; color:rgba(45,212,164,0.6); margin-bottom:4px; }
+    .stats-fav-name { font-size:15px; font-weight:800; color:#fff; }
+    .stats-section-label { font-size:11px; font-weight:700; text-transform:uppercase;
+      letter-spacing:1px; color:rgba(255,255,255,0.3); margin-bottom:12px; }
+    .pair-stat { background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07);
+      border-radius:12px; padding:14px 16px; margin-bottom:8px; }
+    .pair-stat-top { display:flex; align-items:baseline; justify-content:space-between;
+      gap:8px; margin-bottom:8px; }
+    .pair-stat-name { font-size:14px; font-weight:700; color:#fff; }
+    .pair-stat-count { font-size:11px; color:rgba(255,255,255,0.35); white-space:nowrap; flex-shrink:0; }
+    .pair-stat-bar-bg { height:3px; background:rgba(255,255,255,0.08); border-radius:2px; overflow:hidden; }
+    .pair-stat-bar { height:100%; background:var(--accent); border-radius:2px; }
+    .stats-empty { text-align:center; padding:60px 20px; color:rgba(255,255,255,0.3);
+      font-size:15px; line-height:1.9; }
+
     /* ── Completion ── */
     #completion { position:fixed; inset:0; z-index:600;
       background:linear-gradient(160deg,#0c1a14 0%,#0d2b2b 100%);
@@ -549,6 +586,7 @@
       <div class="stat-row"><span class="stat-label">Best streak</span><span class="stat-value" id="d-streak">0</span></div>
     </div>
 
+    <button class="drawer-btn" id="btn-stats-drawer" style="background:rgba(45,212,164,0.08);color:#2dd4a4;border:1px solid rgba(45,212,164,0.18);margin-top:14px;">📊 View Stats</button>
     <button class="drawer-btn drawer-btn-reset" id="btn-reset-drawer">🔄 Reset session</button>
 
     <div class="drawer-shortcuts">
@@ -560,6 +598,15 @@
       Enter — flip card
     </div>
   </nav>
+
+  <!-- Stats panel -->
+  <div id="stats-panel">
+    <div class="stats-header">
+      <span class="stats-title">Your Stats</span>
+      <button class="icon-btn" id="btn-close-stats" style="width:36px;height:36px;font-size:16px;line-height:1;">✕</button>
+    </div>
+    <div class="stats-body" id="stats-body"></div>
+  </div>
 
   <div id="completion">
     <div style="width:100%;max-width:340px;text-align:center;animation:popIn 0.5s 0.1s both;">
@@ -1481,6 +1528,85 @@ document.querySelectorAll('.diff-btn').forEach(btn => {
     rebuildDeck(); closeDrawer(); renderStack();
   });
 });
+
+// ─── STATS PANEL ─────────────────────────────────────────────────────────────
+function openStats() {
+  closeDrawer();
+  renderStats();
+  document.getElementById('stats-panel').classList.add('visible');
+}
+function closeStats() {
+  document.getElementById('stats-panel').classList.remove('visible');
+}
+document.getElementById('btn-stats-drawer').addEventListener('click', openStats);
+document.getElementById('btn-close-stats').addEventListener('click', closeStats);
+
+function renderStats() {
+  const viewsData = S.views(); // { cardKey: { 'en-pl': 3, … } }
+  const body = document.getElementById('stats-body');
+
+  // Aggregate totals per pair
+  const pairViews  = {}; // total swipes per pair
+  const pairUnique = {}; // unique cards seen per pair
+  let grandViews = 0;
+  const seenCards = new Set();
+
+  for (const [cardKey, pairs] of Object.entries(viewsData)) {
+    let seenSomewhere = false;
+    for (const [pair, count] of Object.entries(pairs)) {
+      pairViews[pair]  = (pairViews[pair]  || 0) + count;
+      pairUnique[pair] = (pairUnique[pair] || 0) + 1;
+      grandViews += count;
+      seenSomewhere = true;
+    }
+    if (seenSomewhere) seenCards.add(cardKey);
+  }
+
+  if (grandViews === 0) {
+    body.innerHTML = `<div class="stats-empty">No stats yet.<br>Start swiping cards to see your progress here!</div>`;
+    return;
+  }
+
+  const pairsUsed   = Object.keys(pairViews).length;
+  const maxViews    = Math.max(1, ...Object.values(pairViews));
+  const sortedPairs = Object.keys(pairViews).sort((a, b) => pairViews[b] - pairViews[a]);
+  const favPair     = sortedPairs[0];
+
+  function pairLabel(pair) {
+    const [f, t] = pair.split('-');
+    return `${LANG[f]?.flag || ''} ${LANG[f]?.name || f} → ${LANG[t]?.flag || ''} ${LANG[t]?.name || t}`;
+  }
+
+  let html = `
+    <div class="stats-summary">
+      <div class="stat-tile"><div class="stat-tile-val">${grandViews}</div><div class="stat-tile-label">Total swipes</div></div>
+      <div class="stat-tile"><div class="stat-tile-val">${seenCards.size}</div><div class="stat-tile-label">Unique cards</div></div>
+      <div class="stat-tile"><div class="stat-tile-val">${pairsUsed}</div><div class="stat-tile-label">Pairs tried</div></div>
+      <div class="stat-tile"><div class="stat-tile-val">${pairViews[favPair]}</div><div class="stat-tile-label">Best pair swipes</div></div>
+    </div>
+    <div class="stats-fav">
+      <div class="stats-fav-flag">${LANG[favPair.split('-')[0]]?.flag || '🌍'}</div>
+      <div class="stats-fav-info">
+        <div class="stats-fav-label">Favourite pair</div>
+        <div class="stats-fav-name">${pairLabel(favPair)}</div>
+      </div>
+    </div>
+    <div class="stats-section-label">All language pairs</div>`;
+
+  for (const pair of sortedPairs) {
+    const pct = Math.round((pairViews[pair] / maxViews) * 100);
+    html += `
+      <div class="pair-stat">
+        <div class="pair-stat-top">
+          <span class="pair-stat-name">${pairLabel(pair)}</span>
+          <span class="pair-stat-count">${pairUnique[pair]} card${pairUnique[pair] !== 1 ? 's' : ''} · ${pairViews[pair]} swipe${pairViews[pair] !== 1 ? 's' : ''}</span>
+        </div>
+        <div class="pair-stat-bar-bg"><div class="pair-stat-bar" style="width:${pct}%"></div></div>
+      </div>`;
+  }
+
+  body.innerHTML = html;
+}
 
 // ─── RESET ────────────────────────────────────────────────────────────────────
 document.getElementById('btn-reset-drawer').addEventListener('click', () => {

@@ -1211,6 +1211,60 @@ const streakEl   = document.getElementById('streak');
 const fillEl     = document.getElementById('progress-fill');
 const completion = document.getElementById('completion');
 
+// ─── PHONETIC TRANSCRIPTION ───────────────────────────────────────────────────
+// Rules applied left-to-right; longer patterns must come before shorter ones.
+const PHON_RULES = {
+  pl: [
+    [/dzi/g,'dji'], [/dź/g,'dj'], [/dż/g,'dzh'], [/dz/g,'dz'],
+    [/rz/g,'zh'],   [/sz/g,'sh'], [/cz/g,'ch'],  [/ch/g,'h'],
+    [/ą/g,'awn'], [/ę/g,'en'], [/ó/g,'oo'],
+    [/ź/g,'zh'], [/ś/g,'sh'], [/ć/g,'ch'], [/ń/g,'ny'], [/ż/g,'zh'], [/ł/g,'w'],
+  ],
+  de: [
+    [/tsch/gi,'ch'], [/sch/gi,'sh'],
+    [/äu/gi,'oy'],  [/eu/gi,'oy'], [/ei/gi,'eye'], [/ie/gi,'ee'],
+    [/qu/gi,'kv'],  [/ß/g,'ss'],
+    [/ä/gi,'e'], [/ö/gi,'oe'], [/ü/gi,'ue'],
+    [/ch/gi,'kh'],
+  ],
+  fr: [
+    [/eau/gi,'o'],  [/au/gi,'o'],  [/ou/gi,'oo'], [/oi/gi,'wa'],
+    [/ai/gi,'ay'],  [/ei/gi,'ay'], [/eu/gi,'uh'],
+    [/qu/gi,'k'],   [/ch/gi,'sh'], [/gn/gi,'ny'],
+    [/é/g,'ay'], [/è/g,'eh'], [/ê/g,'eh'],
+    [/â/g,'ah'], [/à/g,'ah'], [/î/g,'ee'], [/ô/g,'oh'],
+    [/û/g,'oo'], [/ù/g,'oo'], [/ç/g,'s'],
+  ],
+  es: [
+    [/ll/gi,'y'], [/rr/gi,'r'], [/qu/gi,'k'], [/ñ/gi,'ny'],
+    [/j/gi,'h'], [/v/gi,'b'], [/h/gi,''],
+    [/á/g,'a'], [/é/g,'e'], [/í/g,'i'], [/ó/g,'o'], [/ú/g,'u'],
+  ],
+  it: [
+    [/gli/gi,'ly'],  [/gn/gi,'ny'],
+    [/sci/gi,'shi'], [/sce/gi,'she'],
+    [/ci/gi,'chi'],  [/ce/gi,'che'],
+    [/gi/gi,'ji'],   [/ge/gi,'je'],
+    [/ch/gi,'k'],    [/gh/gi,'g'],
+    [/z/gi,'ts'],
+    [/à/g,'a'], [/è/g,'e'], [/é/g,'e'], [/ì/g,'i'], [/ò/g,'o'], [/ù/g,'u'],
+  ],
+  nl: [
+    [/sch/gi,'skh'], [/ij/gi,'ay'], [/ei/gi,'ay'], [/ui/gi,'ow'],
+    [/oe/gi,'oo'],   [/aa/gi,'ah'], [/ee/gi,'ay'], [/oo/gi,'oh'], [/uu/gi,'uu'],
+    [/ch/gi,'kh'],   [/g/gi,'kh'],
+  ],
+  en: [], // English rules are unreliable — skipped
+};
+
+function phonetic(text, lang) {
+  const rules = PHON_RULES[lang];
+  if (!rules || !rules.length) return null;
+  let out = text.toLowerCase();
+  for (const [pat, rep] of rules) out = out.replace(pat, rep);
+  return out === text.toLowerCase() ? null : out; // null = nothing changed, don't show
+}
+
 // ─── TEXT-TO-SPEECH ───────────────────────────────────────────────────────────
 function speakBtn(btn) {
   if (!window.speechSynthesis) return;
@@ -1234,6 +1288,7 @@ function cardHTML(card) {
   const lc       = LEVEL_COLOR[card.level] || '#2dd4a4';
   const fromText = card[pair.from];
   const toText   = card[pair.to];
+  const fromPhon = phonetic(fromText, pair.from);
 
   return `
     <div class="card-scene"><div class="card-inner">
@@ -1250,7 +1305,8 @@ function cardHTML(card) {
           <span style="display:inline-block;background:#d1faf0;padding:3px 14px;border-radius:999px;margin-bottom:20px;">
             <span style="font-size:11px;font-weight:700;color:#0d6b5a;">${card.mood}</span>
           </span>
-          <p style="font-size:clamp(20px,5.2vw,27px);font-weight:800;color:#1a2e26;line-height:1.45;margin-bottom:24px;">"${fromText}"</p>
+          <p style="font-size:clamp(20px,5.2vw,27px);font-weight:800;color:#1a2e26;line-height:1.45;margin-bottom:${fromPhon ? '6px' : '24px'};">"${fromText}"</p>
+          ${fromPhon ? `<p style="font-size:12px;color:rgba(26,46,38,0.42);font-style:italic;margin-bottom:18px;line-height:1.55;max-width:90%;">[${fromPhon}]</p>` : ''}
           <span style="font-size:54px;line-height:1;">${card.emoji}</span>
         </div>
 
